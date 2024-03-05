@@ -1,20 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mp3player/helpers/constants.dart';
+import 'package:mp3player/screens/home/home_page.dart';
 import 'package:mp3player/screens/index/index_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'main_controller.dart';
 
 void main() {
-  runApp(ProviderScope(
-    child: const MaterialApp(
-      home: MainPage(),
+  runApp(
+    ProviderScope(
+      child: MaterialApp(
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary)
+        ),
+        home: const MainPage(),
+        routes: {
+          AppID.HOME: (context) => const HomePage(),
+        },
+      ),
     ),
-  ));
+  );
 }
 
-class MainPage extends StatelessWidget {
+class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
   @override
+  ConsumerState<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends ConsumerState<MainPage> {
+  @override
+  void initState() {
+    getPrefValue();
+    super.initState();
+  }
+
+  getPrefValue() async {
+    final pref = await SharedPreferences.getInstance();
+    ref.read(pageChangerProvider.notifier).state = pref.getBool("hasAccount") == null ? false : true;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const IndexPage();
+    return Consumer(
+      builder: (context, ref, child) {
+        final hasAccount = ref.watch(pageChangerProvider);
+        return hasAccount ? const HomePage() : const IndexPage();
+      },
+    );
   }
 }

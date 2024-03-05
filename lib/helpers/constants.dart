@@ -1,0 +1,28 @@
+import 'package:flutter/material.dart';
+
+class AppID {
+  static final AppID _appId = AppID._interval();
+
+  factory AppID() {
+    return _appId;
+  }
+
+  AppID._interval();
+
+  static const String HOME = "/home";
+}
+
+class AppColors {
+  static final AppColors _appColors = AppColors._interval();
+
+  factory AppColors() {
+    return _appColors;
+  }
+
+  AppColors._interval();
+
+  static const Color primary = Color(0xffCFE1b9);
+
+}
+
+
