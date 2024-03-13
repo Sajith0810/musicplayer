@@ -102,9 +102,9 @@ class _IndexPageState extends State<IndexPage> {
                             );
                           } else {
                             final pref = await SharedPreferences.getInstance();
-                            await indexPage.checkPermission();
+                            final value = await indexPage.checkPermission(context);
                             pref.setBool("hasAccount", true);
-                            Navigator.pushNamedAndRemoveUntil(context, AppID.HOME, (route) => false);
+                            Navigator.pushNamedAndRemoveUntil(context, AppID.ACCESS, (route) => false);
                           }
                         },
                         child: const Icon(

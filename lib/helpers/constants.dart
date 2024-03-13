@@ -10,6 +10,7 @@ class AppID {
   AppID._interval();
 
   static const String HOME = "/home";
+  static const String ACCESS = "/access";
 }
 
 class AppColors {
@@ -22,7 +23,4 @@ class AppColors {
   AppColors._interval();
 
   static const Color primary = Color(0xffCFE1b9);
-
 }
-
-

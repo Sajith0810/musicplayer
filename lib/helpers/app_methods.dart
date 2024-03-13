@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 class AppMethods {
@@ -15,6 +18,11 @@ class AppMethods {
 
   getHeight(context) {
     return MediaQuery.of(context).size.height;
+  }
+
+  Uint8List imageConversion(String img) {
+    List<int> image = json.decode(img).cast<int>();
+    return Uint8List.fromList(image);
   }
 
   showAlert({required context, required String message}) async {
