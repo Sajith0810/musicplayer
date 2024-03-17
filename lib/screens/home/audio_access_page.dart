@@ -51,7 +51,8 @@ class _ScanPageState extends State<ScanPage> {
                         onPressed: () {
                           Navigator.pushNamedAndRemoveUntil(context, AppID.HOME, (route) => false);
                         },
-                        child: const Text("Shall We ?"));
+                        child: const Text("Shall We ?"),
+                      );
               },
             ),
           )

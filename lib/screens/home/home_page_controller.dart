@@ -38,8 +38,8 @@ class HomePageController {
           var lister = Directory(file.path).list(recursive: true);
           await for (FileSystemEntity file in lister) {
             if (file is File && file.path.endsWith(".mp3")) {
+              print("file : ${file.path}");
               final metaData = await MetadataRetriever.fromFile(file);
-              print("metadat : ${metaData.trackName}");
               songs.add(
                 SongsModel(
                   trackName: metaData.trackName,

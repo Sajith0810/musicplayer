@@ -18,7 +18,6 @@ class IndexPageController {
     };
     status.forEach((key, value) async {
       if (status[key] != PermissionStatus.granted) {
-        print("permission");
         final accessSongs = await key.request();
         if (accessSongs.isGranted) {
           ref.read(homePageControllerProvider).getDBSongs();

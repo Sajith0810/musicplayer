@@ -28,7 +28,6 @@ class DbHelper {
 
   insertSong(List<SongsModel> songs) async {
     for (SongsModel song in songs) {
-      print("song ${song.trackName}");
       await database.execute(
         "INSERT OR REPLACE INTO songData (trackName,trackArtistNames,albumName,albumArtistName,trackNumber,albumLength,year,genre,authorName,writerName,discNumber,mimeType,trackDuration,bitrate,albumArt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         [
@@ -55,9 +54,7 @@ class DbHelper {
   Future<List<SongsModel>> getSongs() async {
     List<SongsModel> data = [];
     final songs = await database.rawQuery("select * from songData");
-    print("db songs : $songs");
     for (final element in songs) {
-      print("element : ${element['trackName']}");
       data.add(SongsModel.fromMap(element));
     }
     return data;
