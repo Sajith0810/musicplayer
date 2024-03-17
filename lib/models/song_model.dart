@@ -1,6 +1,7 @@
 // To parse this JSON data, do
 //
 //     final temperatures = temperaturesFromMap(jsonString);
+import 'dart:io';
 
 import 'dart:convert';
 
@@ -24,42 +25,43 @@ class SongsModel {
   final String? trackDuration;
   final String? bitrate;
   final String? albumArt;
+  final File file;
 
-  SongsModel({
-    this.trackName,
-    this.trackArtistNames,
-    this.albumName,
-    this.albumArtistName,
-    this.trackNumber,
-    this.albumLength,
-    this.year,
-    this.genre,
-    this.authorName,
-    this.writerName,
-    this.discNumber,
-    this.mimeType,
-    this.trackDuration,
-    this.bitrate,
-    this.albumArt,
-  });
+  SongsModel(
+      {this.trackName,
+      this.trackArtistNames,
+      this.albumName,
+      this.albumArtistName,
+      this.trackNumber,
+      this.albumLength,
+      this.year,
+      this.genre,
+      this.authorName,
+      this.writerName,
+      this.discNumber,
+      this.mimeType,
+      this.trackDuration,
+      this.bitrate,
+      this.albumArt,
+      required this.file});
 
   factory SongsModel.fromMap(Map<String, dynamic> json) => SongsModel(
-        trackName: json["trackName"],
-        trackArtistNames: json["trackArtistNames"] == [] || json["trackArtistNames"] == null ? [] : json["trackArtistNames"].split(","),
-        albumName: json["albumName"],
-        albumArtistName: json["albumArtistName"],
-        trackNumber: json["trackNumber"],
-        albumLength: json["albumLength"],
-        year: json["year"],
-        genre: json["genre"],
-        authorName: json["authorName"],
-        writerName: json["writerName"],
-        discNumber: json["discNumber"],
-        mimeType: json["mimeType"],
-        trackDuration: json["trackDuration"],
-        bitrate: json["bitrate"],
-        albumArt: json["albumArt"].toString(),
-      );
+      trackName: json["trackName"],
+      trackArtistNames: json["trackArtistNames"] == [] || json["trackArtistNames"] == null ? [] : json["trackArtistNames"].split(","),
+      albumName: json["albumName"],
+      albumArtistName: json["albumArtistName"],
+      trackNumber: json["trackNumber"],
+      albumLength: json["albumLength"],
+      year: json["year"],
+      genre: json["genre"],
+      authorName: json["authorName"],
+      writerName: json["writerName"],
+      discNumber: json["discNumber"],
+      mimeType: json["mimeType"],
+      trackDuration: json["trackDuration"],
+      bitrate: json["bitrate"],
+      albumArt: json["albumArt"].toString(),
+      file: File(json["file"]));
 
   Map<String, dynamic> toMap() => {
         "trackName": trackName,
@@ -77,5 +79,6 @@ class SongsModel {
         "trackDuration": trackDuration,
         "bitrate": bitrate,
         "albumArt": albumArt,
+        "file": file
       };
 }

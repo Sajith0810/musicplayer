@@ -20,7 +20,7 @@ class DbHelper {
       join(await getDatabasesPath(), 'songs.db'),
       onCreate: (db, version) async {
         await db.execute(
-            'CREATE TABLE IF NOT EXISTS songData (trackName VARCHAR, trackArtistNames VARCHAR, albumName VARCHAR, albumArtistName VARCHAR, trackNumber VARCHAR, albumLength VARCHAR, year VARCHAR, genre VARCHAR, authorName VARCHAR, writerName VARCHAR, discNumber VARCHAR, mimeType VARCHAR, trackDuration VARCHAR, bitrate VARCHAR, albumArt VARCHAR)');
+            'CREATE TABLE IF NOT EXISTS songData (trackName VARCHAR, trackArtistNames VARCHAR, albumName VARCHAR, albumArtistName VARCHAR, trackNumber VARCHAR, albumLength VARCHAR, year VARCHAR, genre VARCHAR, authorName VARCHAR, writerName VARCHAR, discNumber VARCHAR, mimeType VARCHAR, trackDuration VARCHAR, bitrate VARCHAR, albumArt VARCHAR, file VARCHAR)');
       },
       version: 1,
     );
@@ -29,7 +29,7 @@ class DbHelper {
   insertSong(List<SongsModel> songs) async {
     for (SongsModel song in songs) {
       await database.execute(
-        "INSERT OR REPLACE INTO songData (trackName,trackArtistNames,albumName,albumArtistName,trackNumber,albumLength,year,genre,authorName,writerName,discNumber,mimeType,trackDuration,bitrate,albumArt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT OR REPLACE INTO songData (trackName,trackArtistNames,albumName,albumArtistName,trackNumber,albumLength,year,genre,authorName,writerName,discNumber,mimeType,trackDuration,bitrate,albumArt,file) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         [
           song.trackName,
           song.trackArtistNames?.join(","),
@@ -46,6 +46,7 @@ class DbHelper {
           song.trackNumber.toString(),
           song.bitrate.toString(),
           song.albumArt,
+          song.file.toString()
         ],
       );
     }

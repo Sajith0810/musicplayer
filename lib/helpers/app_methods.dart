@@ -20,15 +20,15 @@ class AppMethods {
     return MediaQuery.of(context).size.height;
   }
 
-  Uint8List imageConversion(String img) {
-    List<int> image = json.decode(img).cast<int>();
+  Uint8List imageConversion(String? img) {
+    List<int> image = json.decode(img!).cast<int>();
     return Uint8List.fromList(image);
   }
 
-  showAlert({required context, required String message}) async {
+  showAlert({required BuildContext context, required String message}) async {
     return showDialog(
       context: context,
-      builder: (context) => AlertDialog.adaptive(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text("Alert"),
         content: Text(message.toString()),
         actions: [
