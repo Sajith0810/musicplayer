@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AppMethods {
   static final AppMethods _appMethods = AppMethods._internal();
@@ -26,20 +27,28 @@ class AppMethods {
   }
 
   showAlert({required BuildContext context, required String message}) async {
-    return showDialog(
+    return await showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text("Alert"),
-        content: Text(message.toString()),
-        actions: [
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text("okay"),
-          ),
-        ],
-      ),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Alert"),
+          content: Text(message.toString()),
+          actions: [
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Cancel"),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await openAppSettings();
+              },
+              child: const Text("OpenApp Settings"),
+            ),
+          ],
+        );
+      },
     );
   }
 }

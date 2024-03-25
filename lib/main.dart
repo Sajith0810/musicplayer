@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mp3player/helpers/constants.dart';
 import 'package:mp3player/helpers/db_helper.dart';
-import 'package:mp3player/screens/home/audio_access_page.dart';
 import 'package:mp3player/screens/home/home_page.dart';
 import 'package:mp3player/screens/index/index_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,7 +18,6 @@ void main() async {
         home: const MainPage(),
         routes: {
           AppID.HOME: (context) => const HomePage(),
-          AppID.ACCESS: (context) => const ScanPage(),
         },
       ),
     ),

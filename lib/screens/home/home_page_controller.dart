@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_media_metadata/flutter_media_metadata.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mp3player/helpers/db_helper.dart';
@@ -17,6 +15,7 @@ final selectedSongIndexProvider = StateProvider<int>((ref) => 0);
 final sliderValueProvider = StateProvider<double>((ref) => 0.0);
 final songMaxValueProvider = StateProvider<double>((ref) => 1.0);
 final isPlayingProvider = StateProvider((ref) => false);
+final isRepeatModeProvider = StateProvider<bool>((ref) => false);
 
 final audioPlayerControllerProvider = Provider((ref) => AudioPlayerController(ref: ref));
 
@@ -42,9 +41,9 @@ class HomePageController {
       }
     }
     for (String path in filePath) {
-      var withAndroidFolders = Directory(path).list();
-      await for (FileSystemEntity dirFile in withAndroidFolders) {
-        if (!dirFile.path.contains("Android")) {
+      var withAndroidFolders = Directory(path).statSync().type == FileSystemEntityType.directory ? Directory(path).listSync() : [];
+      for (FileSystemEntity dirFile in withAndroidFolders) {
+        if (!dirFile.path.contains("Android") && await dirFile.exists()) {
           if (dirFile is File && dirFile.path.endsWith(".mp3")) {
             final metaData = await MetadataRetriever.fromFile(dirFile);
             if (metaData.trackName != null) {
@@ -89,7 +88,7 @@ class HomePageController {
         trackDuration: metaData.trackDuration.toString(),
         bitrate: metaData.bitrate.toString(),
         albumArt: metaData.albumArt.toString(),
-        file: file,
+        file: file.path,
       ),
     );
   }
@@ -105,7 +104,10 @@ class AudioPlayerController {
   final audioPlayer = AudioPlayer();
 
   AudioPlayerController({required this.ref}) {
-    audioPlayer.onPlayerComplete.listen((event) {});
+    print("init called");
+    audioPlayer.onPlayerComplete.listen((event) {
+      changeSong();
+    });
     audioPlayer.onPositionChanged.listen((event) {
       ref.read(sliderValueProvider.notifier).state = event.inSeconds.toDouble();
     });
@@ -114,12 +116,27 @@ class AudioPlayerController {
     });
   }
 
-  playSong({required String songPath}) {
-    audioPlayer.play(DeviceFileSource(songPath));
+  playSong({required String songPath}) async {
+    print(" path : $songPath");
+    await audioPlayer.play(DeviceFileSource(songPath));
   }
 
-  pauseSong() {
-    audioPlayer.pause();
+  String convertSecondsToMinutes(int seconds) {
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+
+    String formattedMinutes = minutes.toString().padLeft(2, '0');
+    String formattedSeconds = remainingSeconds.toString().padLeft(2, '0');
+
+    return "$formattedMinutes:$formattedSeconds";
+  }
+
+  resumeSong() async {
+    await audioPlayer.resume();
+  }
+
+  pauseSong() async {
+    await audioPlayer.pause();
   }
 
   seekSong({required int seekedPosition}) {
@@ -130,18 +147,31 @@ class AudioPlayerController {
   changeSong({bool isForward = true}) {
     final totalSong = ref.read(mp3SongListProvider);
     final selectedSongIndex = ref.read(selectedSongIndexProvider);
-    if (isForward) {
-      if (selectedSongIndex < totalSong.length) {
-        ref.read(selectedSongIndexProvider.notifier).state = selectedSongIndex + 1;
-      } else {
-        ref.read(selectedSongIndexProvider.notifier).state = 0;
-      }
+    final isRepeat = ref.read(isRepeatModeProvider);
+    if (isRepeat) {
+      ref.read(selectedSongIndexProvider.notifier).state = selectedSongIndex;
+      ref.read(selectedSongProvider.notifier).state = totalSong[ref.read(selectedSongIndexProvider)];
     } else {
-      if (selectedSongIndex == 0) {
-        ref.read(selectedSongIndexProvider.notifier).state = totalSong.length - 1;
+      if (isForward) {
+        if (selectedSongIndex < totalSong.length - 1) {
+          ref.read(selectedSongIndexProvider.notifier).state = selectedSongIndex + 1;
+          ref.read(selectedSongProvider.notifier).state = totalSong[ref.read(selectedSongIndexProvider)];
+        } else {
+          ref.read(selectedSongIndexProvider.notifier).state = 0;
+          ref.read(selectedSongProvider.notifier).state = totalSong[ref.read(selectedSongIndexProvider)];
+        }
       } else {
-        ref.read(selectedSongIndexProvider.notifier).state = selectedSongIndex - 1;
+        if (selectedSongIndex == 0) {
+          ref.read(selectedSongIndexProvider.notifier).state = totalSong.length - 1;
+          ref.read(selectedSongProvider.notifier).state = totalSong[ref.read(selectedSongIndexProvider)];
+        } else {
+          ref.read(selectedSongIndexProvider.notifier).state = selectedSongIndex - 1;
+          ref.read(selectedSongProvider.notifier).state = totalSong[ref.read(selectedSongIndexProvider)];
+        }
       }
     }
+    pauseSong();
+    playSong(songPath: ref.read(selectedSongProvider)!.file);
+    ref.read(isPlayingProvider.notifier).state = true;
   }
 }

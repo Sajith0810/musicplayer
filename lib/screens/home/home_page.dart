@@ -1,11 +1,9 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mp3player/helpers/app_methods.dart';
 import 'package:mp3player/helpers/constants.dart';
 import 'package:mp3player/screens/home/home_page_controller.dart';
 import 'package:shimmer/shimmer.dart';
-
 import '../../models/song_model.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -32,15 +30,14 @@ class _HomePageState extends ConsumerState<HomePage> {
         title: const Text("Music"),
         surfaceTintColor: Colors.white,
       ),
-      drawer: Container(
-        margin: const EdgeInsets.only(left: 5, top: 5, bottom: 5),
-        decoration: const BoxDecoration(color: Colors.white),
-        child: const Column(
-          children: [
-            DrawerHeader(
-              child: Text("Header"),
-            ),
-          ],
+      drawer: SafeArea(
+        child: Container(
+          width: AppMethods().getWidth(context) * 0.72,
+          margin: const EdgeInsets.only(left: 10, top: 5, bottom: 5),
+          decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(20))),
+          child: const Column(
+            children: [],
+          ),
         ),
       ),
       body: Consumer(
@@ -63,6 +60,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                             ref.read(selectedSongIndexProvider.notifier).state = index;
                             ref.read(selectedSongProvider.notifier).state = song;
                             songPage(audioPlayer: audioPlayerController);
+                            audioPlayerController.playSong(songPath: ref.read(selectedSongProvider)!.file);
+                            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                              ref.read(isPlayingProvider.notifier).state = true;
+                            });
                           },
                           child: ListTile(
                             contentPadding: EdgeInsets.zero,
@@ -202,8 +203,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         return Consumer(
           builder: (context, ref, child) {
             final songData = ref.watch(selectedSongProvider);
-            audioPlayer.playSong(songPath: songData!.file.path);
-            return Container(
+            return SizedBox(
               height: AppMethods().getHeight(context),
               width: AppMethods().getWidth(context),
               child: Column(
@@ -216,7 +216,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       borderRadius: BorderRadius.circular(15),
                       image: DecorationImage(
                         image: MemoryImage(
-                          AppMethods().imageConversion(songData?.albumArt),
+                          AppMethods().imageConversion(songData?.albumArt ?? ""),
                         ),
                       ),
                     ),
@@ -224,33 +224,55 @@ class _HomePageState extends ConsumerState<HomePage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 30),
                     child: Text(
-                      songData.trackName ?? "-",
+                      songData?.trackName ?? "-",
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
-                      songData.albumArtistName ?? "-",
+                      songData?.albumArtistName ?? "-",
                       style: const TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w500),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
-                    child: Consumer(
-                      builder: (context, ref, child) {
-                        final sliderValue = ref.watch(sliderValueProvider);
-                        final songMax = ref.watch(songMaxValueProvider);
-                        return Slider(
-                          value: sliderValue,
-                          min: 0.0,
-                          max: songMax,
-                          onChanged: (val) {
-                            audioPlayer.seekSong(seekedPosition: val.toInt());
-                          },
-                        );
-                      },
-                    ),
+                    child: Consumer(builder: (context, ref, child) {
+                      final sliderValue = ref.watch(sliderValueProvider);
+                      final songMax = ref.watch(songMaxValueProvider);
+                      return Column(
+                        children: [
+                          Slider(
+                            value: sliderValue,
+                            min: 0.0,
+                            max: songMax + 1,
+                            onChanged: (val) {
+                              audioPlayer.seekSong(seekedPosition: val.toInt());
+                            },
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 15),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  audioPlayer.convertSecondsToMinutes(
+                                    sliderValue.toInt(),
+                                  ),
+                                  style: TextStyle(fontSize: 15),
+                                ),
+                                Text(
+                                  audioPlayer.convertSecondsToMinutes(
+                                    songMax.toInt(),
+                                  ),
+                                  style: TextStyle(fontSize: 15),
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      );
+                    }),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 15),
@@ -272,8 +294,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                               size: 25,
                             )),
                         IconButton(
-                          onPressed: () {
-                            audioPlayer.playSong(songPath: songData!.file.path);
+                          onPressed: () async {
+                            print("found : ${songData?.file}");
+                            ref.read(isPlayingProvider) ? await audioPlayer.pauseSong() : await audioPlayer.resumeSong();
+                            ref.read(isPlayingProvider.notifier).state = !ref.read(isPlayingProvider);
                           },
                           style: IconButton.styleFrom(backgroundColor: AppColors.primary),
                           icon: Consumer(builder: (context, ref, child) {
@@ -285,19 +309,27 @@ class _HomePageState extends ConsumerState<HomePage> {
                           }),
                         ),
                         IconButton(
-                            onPressed: () {
-                              audioPlayer.changeSong();
+                            onPressed: () async {
+                              print("chnage song");
+                              await audioPlayer.changeSong();
                             },
+                            style: IconButton.styleFrom(backgroundColor: AppColors.primary),
                             icon: const Icon(
                               Icons.skip_next_rounded,
                               size: 25,
                             )),
-                        IconButton(
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.repeat_rounded,
-                              size: 25,
-                            )),
+                        Consumer(builder: (context, ref, child) {
+                          final isRepeat = ref.watch(isRepeatModeProvider);
+                          return IconButton(
+                              onPressed: () {
+                                ref.read(isRepeatModeProvider.notifier).state = !ref.read(isRepeatModeProvider);
+                              },
+                              style: IconButton.styleFrom(backgroundColor: isRepeat ? Colors.green : null),
+                              icon: const Icon(
+                                Icons.repeat_rounded,
+                                size: 25,
+                              ));
+                        }),
                       ],
                     ),
                   )

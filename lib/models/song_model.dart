@@ -1,7 +1,6 @@
 // To parse this JSON data, do
 //
 //     final temperatures = temperaturesFromMap(jsonString);
-import 'dart:io';
 
 import 'dart:convert';
 
@@ -25,7 +24,7 @@ class SongsModel {
   final String? trackDuration;
   final String? bitrate;
   final String? albumArt;
-  final File file;
+  final String file;
 
   SongsModel(
       {this.trackName,
@@ -61,7 +60,7 @@ class SongsModel {
       trackDuration: json["trackDuration"],
       bitrate: json["bitrate"],
       albumArt: json["albumArt"].toString(),
-      file: File(json["file"]));
+      file: json["file"]);
 
   Map<String, dynamic> toMap() => {
         "trackName": trackName,

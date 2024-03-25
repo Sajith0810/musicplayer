@@ -7,6 +7,8 @@ import 'package:mp3player/screens/index/index_page_controller.dart';
 import 'package:page_view_dot_indicator/page_view_dot_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../home/home_page_controller.dart';
+
 class IndexPage extends StatefulWidget {
   const IndexPage({super.key});
 
@@ -15,20 +17,19 @@ class IndexPage extends StatefulWidget {
 }
 
 class _IndexPageState extends State<IndexPage> {
-  final PageController _pageController = PageController(
-    initialPage: 0,
-  );
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    _pageController = PageController(
+      initialPage: 0,
+    );
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-          AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-          print('Running on ${androidInfo.version.release}');
-        },
-      ),
       body: Column(
         children: [
           Expanded(
@@ -36,7 +37,7 @@ class _IndexPageState extends State<IndexPage> {
             child: Consumer(builder: (context, ref, child) {
               return PageView(
                 controller: _pageController,
-                physics: const BouncingScrollPhysics(),
+                physics: NeverScrollableScrollPhysics(),
                 onPageChanged: (int changedIndex) {
                   ref.read(pageChangerProvider.notifier).state = changedIndex;
                 },
@@ -51,12 +52,22 @@ class _IndexPageState extends State<IndexPage> {
                     "assets/bg_images/permission_bg.svg",
                     height: MediaQuery.of(context).size.height * 0.5,
                     width: MediaQuery.of(context).size.width * 0.9,
-                  )
+                  ),
+                  Consumer(builder: (context, ref, child) {
+                    return ref.watch(scanPageLoaderProvider)
+                        ? SvgPicture.asset(
+                            "assets/bg_images/search_bg.svg",
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            width: MediaQuery.of(context).size.width * 0.9,
+                          )
+                        : const SizedBox();
+                  })
                 ],
               );
             }),
           ),
           Expanded(
+            flex: 2,
             child: Consumer(
               builder: (context, ref, child) {
                 final index = ref.watch(pageChangerProvider);
@@ -66,7 +77,7 @@ class _IndexPageState extends State<IndexPage> {
                     Consumer(
                       builder: (context, ref, child) {
                         return PageViewDotIndicator(
-                          currentItem: ref.watch(pageChangerProvider),
+                          currentItem: index,
                           count: 2,
                           unselectedColor: Colors.black26,
                           selectedColor: Colors.deepPurpleAccent,
@@ -78,7 +89,6 @@ class _IndexPageState extends State<IndexPage> {
                           alignment: Alignment.center,
                           fadeEdges: false,
                           boxShape: BoxShape.rectangle,
-                          //defaults to circle
                           borderRadius: BorderRadius.circular(5), //only for rectangle shape
                         );
                       },
@@ -86,11 +96,23 @@ class _IndexPageState extends State<IndexPage> {
                     Column(
                       children: [
                         Text(
-                          index == 0 ? "Let's Enjoy the way" : "I need your Permission to engage !",
+                          ref.watch(scanPageLoaderProvider)
+                              ? "Please Be Patient !"
+                              : index == 0
+                                  ? "Let's Enjoy the way"
+                                  : index == 1
+                                      ? "I need your Permission to engage !"
+                                      : "",
                           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 1),
                         ),
                         Text(
-                          index == 0 ? "Shall we move to the music world ?" : "Can i take it ?",
+                          ref.watch(scanPageLoaderProvider)
+                              ? "This won't take much time"
+                              : index == 0
+                                  ? "Shall we move to the music world ?"
+                                  : index == 1
+                                      ? "Can i take it ?"
+                                      : "",
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.grey,
@@ -100,26 +122,29 @@ class _IndexPageState extends State<IndexPage> {
                     ),
                     Consumer(builder: (context, ref, child) {
                       final indexPage = ref.watch(indexPageProvider);
-                      return ElevatedButton(
-                        onPressed: () async {
-                          int page = _pageController.page!.toInt();
-                          if (page != 1) {
-                            _pageController.nextPage(
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.linear,
+                      final isLoading = ref.watch(scanPageLoaderProvider);
+                      return isLoading
+                          ? CircularProgressIndicator()
+                          : FilledButton(
+                              onPressed: () async {
+                                int page = _pageController.page!.toInt();
+                                if (page != 1) {
+                                  _pageController.nextPage(
+                                    duration: const Duration(milliseconds: 500),
+                                    curve: Curves.linear,
+                                  );
+                                } else {
+                                  await indexPage.checkPermission(context);
+                                  final pref = await SharedPreferences.getInstance();
+                                  await pref.setBool("hasAccount", true);
+                                  Navigator.pushNamedAndRemoveUntil(context, AppID.HOME, (route) => false);
+                                }
+                              },
+                              child: const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 30,
+                              ),
                             );
-                          } else {
-                            final pref = await SharedPreferences.getInstance();
-                            final value = await indexPage.checkPermission(context);
-                            pref.setBool("hasAccount", true);
-                            Navigator.pushNamedAndRemoveUntil(context, AppID.ACCESS, (route) => false);
-                          }
-                        },
-                        child: const Icon(
-                          Icons.arrow_forward_rounded,
-                          size: 30,
-                        ),
-                      );
                     })
                   ],
                 );
