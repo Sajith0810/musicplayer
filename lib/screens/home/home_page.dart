@@ -272,6 +272,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   value: sliderValue,
                                   min: 0.0,
                                   max: songMax + 1,
+                                  activeColor: Colors.black,
+                                  secondaryActiveColor: Colors.black87,
                                   onChanged: (val) {
                                     audioPlayer.seekSong(seekedPosition: val.toInt());
                                   },
@@ -310,6 +312,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   icon: const Icon(
                                     Icons.shuffle_rounded,
                                     size: 25,
+                                    color: Colors.black87,
                                   )),
                               IconButton(
                                   onPressed: () {
@@ -318,30 +321,31 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   icon: const Icon(
                                     Icons.skip_previous_rounded,
                                     size: 25,
+                                    color: Colors.black87,
                                   )),
                               IconButton(
                                 onPressed: () async {
                                   ref.read(isPlayingProvider) ? await audioPlayer.pauseSong() : await audioPlayer.resumeSong();
                                   ref.read(isPlayingProvider.notifier).state = !ref.read(isPlayingProvider);
                                 },
-                                style: IconButton.styleFrom(backgroundColor: Color(0xff006da4)),
+                                style: IconButton.styleFrom(backgroundColor: Colors.black87),
                                 icon: Consumer(builder: (context, ref, child) {
                                   final isPlaying = ref.watch(isPlayingProvider);
                                   return Icon(
                                     isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                    size: 30,
+                                    size: 35,
                                     color: Colors.white,
                                   );
                                 }),
                               ),
                               IconButton(
                                   onPressed: () async {
-                                    print("chnage song");
                                     await audioPlayer.changeSong();
                                   },
                                   icon: const Icon(
                                     Icons.skip_next_rounded,
                                     size: 25,
+                                    color: Colors.black87,
                                   )),
                               Consumer(builder: (context, ref, child) {
                                 final isRepeat = ref.watch(isRepeatModeProvider);
@@ -349,10 +353,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     onPressed: () {
                                       ref.read(isRepeatModeProvider.notifier).state = !ref.read(isRepeatModeProvider);
                                     },
-                                    style: IconButton.styleFrom(backgroundColor: isRepeat ? Colors.green : null),
+                                    style: IconButton.styleFrom(backgroundColor: isRepeat ? Colors.blueAccent : null),
                                     icon: const Icon(
                                       Icons.repeat_rounded,
                                       size: 25,
+                                      color: Colors.black87,
                                     ));
                               }),
                             ],
