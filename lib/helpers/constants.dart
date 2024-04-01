@@ -21,6 +21,4 @@ class AppColors {
   }
 
   AppColors._interval();
-
-  static const Color primary = Color(0xffCFE1b9);
 }

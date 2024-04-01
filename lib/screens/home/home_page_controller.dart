@@ -41,22 +41,24 @@ class HomePageController {
       }
     }
     for (String path in filePath) {
-      var withAndroidFolders = Directory(path).statSync().type == FileSystemEntityType.directory ? Directory(path).listSync() : [];
+      var withAndroidFolders = Directory(path).listSync();
       for (FileSystemEntity dirFile in withAndroidFolders) {
-        if (!dirFile.path.contains("Android") && await dirFile.exists()) {
-          if (dirFile is File && dirFile.path.endsWith(".mp3")) {
-            final metaData = await MetadataRetriever.fromFile(dirFile);
-            if (metaData.trackName != null) {
-              addToModel(songs: songs, metaData: metaData, file: dirFile);
-            }
-          } else {
-            var lister = Directory(dirFile.path).list(recursive: true);
-            await for (FileSystemEntity songFile in lister) {
-              if (songFile is File && songFile.path.endsWith(".mp3")) {
-                print("file : ${songFile.path}");
-                final metaData = await MetadataRetriever.fromFile(songFile);
-                if (metaData.trackName != null) {
-                  addToModel(songs: songs, metaData: metaData, file: songFile);
+        if (Directory(dirFile.path).statSync().type == FileSystemEntityType.directory) {
+          if (!dirFile.path.contains("Android") && await dirFile.exists()) {
+            if (dirFile is File && dirFile.path.endsWith(".mp3")) {
+              final metaData = await MetadataRetriever.fromFile(dirFile);
+              if (metaData.trackName != null) {
+                addToModel(songs: songs, metaData: metaData, file: dirFile);
+              }
+            } else {
+              var lister = Directory(dirFile.path).list(recursive: true);
+              await for (FileSystemEntity songFile in lister) {
+                if (songFile is File && songFile.path.endsWith(".mp3")) {
+                  print("file : ${songFile.path}");
+                  final metaData = await MetadataRetriever.fromFile(songFile);
+                  if (metaData.trackName != null) {
+                    addToModel(songs: songs, metaData: metaData, file: songFile);
+                  }
                 }
               }
             }
