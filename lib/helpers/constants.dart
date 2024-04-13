@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 class AppID {
   static final AppID _appId = AppID._interval();

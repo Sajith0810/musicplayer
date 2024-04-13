@@ -1,10 +1,8 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mp3player/helpers/app_methods.dart';
-import 'package:mp3player/helpers/constants.dart';
 import 'package:mp3player/screens/home/home_page_controller.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../models/song_model.dart';
@@ -65,10 +63,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                         }
                       },
                       decoration: InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(horizontal: 15),
-                          hintFadeDuration: Duration(milliseconds: 500),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 15),
+                          hintFadeDuration: const Duration(milliseconds: 500),
                           hintText: "Search songs",
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(width: 1)),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(width: 1)),
                           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(width: 1))),
                     ),
                   );
@@ -84,7 +82,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 final oldBool = ref.read(textFieldSwithcerProvider);
                 ref.read(textFieldSwithcerProvider.notifier).state = !oldBool;
               },
-              icon: Icon(Icons.search_rounded))
+              icon: const Icon(Icons.search_rounded))
         ],
       ),
       drawer: SafeArea(
@@ -199,7 +197,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 Container(
                                   color: Colors.white54,
                                   child: ListTile(
-                                    contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                                     leading: CircleAvatar(
                                       radius: 25,
                                       backgroundImage: MemoryImage(
@@ -408,13 +406,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         audioPlayer.convertSecondsToMinutes(
                                           sliderValue.toInt(),
                                         ),
-                                        style: TextStyle(fontSize: 15),
+                                        style: const TextStyle(fontSize: 15),
                                       ),
                                       Text(
                                         audioPlayer.convertSecondsToMinutes(
                                           songMax.toInt(),
                                         ),
-                                        style: TextStyle(fontSize: 15),
+                                        style: const TextStyle(fontSize: 15),
                                       ),
                                     ],
                                   ),

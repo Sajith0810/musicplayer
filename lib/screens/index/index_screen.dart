@@ -1,4 +1,3 @@
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -37,7 +36,7 @@ class _IndexPageState extends State<IndexPage> {
             child: Consumer(builder: (context, ref, child) {
               return PageView(
                 controller: _pageController,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 onPageChanged: (int changedIndex) {
                   ref.read(pageChangerProvider.notifier).state = changedIndex;
                 },
@@ -119,7 +118,7 @@ class _IndexPageState extends State<IndexPage> {
                       final indexPage = ref.watch(indexPageProvider);
                       final isLoading = ref.watch(scanPageLoaderProvider);
                       return isLoading
-                          ? CircularProgressIndicator()
+                          ? const CircularProgressIndicator()
                           : FilledButton(
                               onPressed: () async {
                                 int page = _pageController.page!.toInt();
