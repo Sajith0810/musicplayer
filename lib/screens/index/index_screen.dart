@@ -48,11 +48,6 @@ class _IndexPageState extends State<IndexPage> {
                     height: MediaQuery.of(context).size.height * 0.5,
                     width: MediaQuery.of(context).size.width * 0.9,
                   ),
-                  SvgPicture.asset(
-                    "assets/bg_images/permission_bg.svg",
-                    height: MediaQuery.of(context).size.height * 0.5,
-                    width: MediaQuery.of(context).size.width * 0.9,
-                  ),
                   Consumer(builder: (context, ref, child) {
                     return ref.watch(scanPageLoaderProvider)
                         ? SvgPicture.asset(
@@ -60,7 +55,11 @@ class _IndexPageState extends State<IndexPage> {
                             height: MediaQuery.of(context).size.height * 0.5,
                             width: MediaQuery.of(context).size.width * 0.9,
                           )
-                        : const SizedBox();
+                        : SvgPicture.asset(
+                            "assets/bg_images/permission_bg.svg",
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            width: MediaQuery.of(context).size.width * 0.9,
+                          );
                   })
                 ],
               );
@@ -74,24 +73,20 @@ class _IndexPageState extends State<IndexPage> {
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Consumer(
-                      builder: (context, ref, child) {
-                        return PageViewDotIndicator(
-                          currentItem: index,
-                          count: 2,
-                          unselectedColor: Colors.black26,
-                          selectedColor: Colors.deepPurpleAccent,
-                          size: const Size(20, 8),
-                          unselectedSize: const Size(8, 8),
-                          duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.symmetric(horizontal: 5),
-                          padding: EdgeInsets.zero,
-                          alignment: Alignment.center,
-                          fadeEdges: false,
-                          boxShape: BoxShape.rectangle,
-                          borderRadius: BorderRadius.circular(5), //only for rectangle shape
-                        );
-                      },
+                    PageViewDotIndicator(
+                      currentItem: index,
+                      count: 2,
+                      unselectedColor: Colors.black26,
+                      selectedColor: Colors.deepPurpleAccent,
+                      size: const Size(20, 8),
+                      unselectedSize: const Size(8, 8),
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(horizontal: 5),
+                      padding: EdgeInsets.zero,
+                      alignment: Alignment.center,
+                      fadeEdges: false,
+                      boxShape: BoxShape.rectangle,
+                      borderRadius: BorderRadius.circular(5), //only for rectangle shape
                     ),
                     Column(
                       children: [
@@ -135,9 +130,9 @@ class _IndexPageState extends State<IndexPage> {
                                   );
                                 } else {
                                   await indexPage.checkPermission(context);
+                                  Navigator.pushNamedAndRemoveUntil(context, AppID.HOME, (route) => false);
                                   final pref = await SharedPreferences.getInstance();
                                   await pref.setBool("hasAccount", true);
-                                  Navigator.pushNamedAndRemoveUntil(context, AppID.HOME, (route) => false);
                                 }
                               },
                               child: const Icon(

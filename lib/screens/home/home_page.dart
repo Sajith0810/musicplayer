@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mp3player/helpers/app_methods.dart';
 import 'package:mp3player/helpers/constants.dart';
@@ -18,12 +17,22 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  final searchTextController = TextEditingController();
+  late final Tween<double> animation;
+  List<SongsModel> songs = [];
+
   @override
   void initState() {
+    animation = Tween<double>(begin: 0, end: 300);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      await ref.read(homePageControllerProvider).getDBSongs();
+      songs = await ref.read(homePageControllerProvider).getDBSongs();
+      // await compute(scanFiles(), noSuchMethod);
     });
     super.initState();
+  }
+
+  scanFiles() async {
+    await ref.read(homePageControllerProvider).scanAllMp3Files();
   }
 
   @override
@@ -31,8 +40,52 @@ class _HomePageState extends ConsumerState<HomePage> {
     AudioPlayerController audioPlayerController = ref.watch(audioPlayerControllerProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Music"),
+        title: Consumer(builder: (context, ref, child) {
+          final isTextField = ref.watch(textFieldSwithcerProvider);
+          if (isTextField) {
+            return TweenAnimationBuilder(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeIn,
+                tween: animation,
+                builder: (context, value, child) {
+                  print(value);
+                  return SizedBox(
+                    height: AppMethods().getWidth(context) * 0.1,
+                    width: value,
+                    child: TextFormField(
+                      controller: searchTextController,
+                      onChanged: (val) {
+                        print(val);
+                        final data = ref.read(mp3SongListProvider);
+                        final filteredSongs = songs.where((element) => element.trackName!.toLowerCase().contains(val.toLowerCase())).toList();
+                        if (filteredSongs.isEmpty && val == "") {
+                          ref.read(mp3SongListProvider.notifier).state = songs;
+                        } else {
+                          ref.read(mp3SongListProvider.notifier).state = filteredSongs;
+                        }
+                      },
+                      decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(horizontal: 15),
+                          hintFadeDuration: Duration(milliseconds: 500),
+                          hintText: "Search songs",
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(width: 1)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(width: 1))),
+                    ),
+                  );
+                });
+          } else {
+            return const Text("Music");
+          }
+        }),
         surfaceTintColor: Colors.white,
+        actions: [
+          IconButton(
+              onPressed: () {
+                final oldBool = ref.read(textFieldSwithcerProvider);
+                ref.read(textFieldSwithcerProvider.notifier).state = !oldBool;
+              },
+              icon: Icon(Icons.search_rounded))
+        ],
       ),
       drawer: SafeArea(
         child: Container(
@@ -47,6 +100,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       body: Consumer(
         builder: (context, ref, child) {
           List<SongsModel> songList = ref.watch(mp3SongListProvider);
+          final currentPlayingSongIndex = ref.watch(selectedSongIndexProvider);
           if (songList.isNotEmpty) {
             return Column(
               children: [
@@ -59,6 +113,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     itemBuilder: (context, index) {
                       if (songList.isNotEmpty) {
                         SongsModel song = songList[index];
+                        precacheImage(MemoryImage(AppMethods().imageConversion(song.albumArt!)), context);
                         return InkWell(
                           onTap: () {
                             ref.read(selectedSongIndexProvider.notifier).state = index;
@@ -72,17 +127,26 @@ class _HomePageState extends ConsumerState<HomePage> {
                           child: ListTile(
                             contentPadding: EdgeInsets.zero,
                             horizontalTitleGap: 1,
-                            leading: Image.memory(
-                              AppMethods().imageConversion(song.albumArt!),
-                              width: 100,
+                            leading: Container(
                               height: 100,
-                              filterQuality: FilterQuality.low,
+                              width: 100,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                image: DecorationImage(
+                                  image: MemoryImage(
+                                    AppMethods().imageConversion(song.albumArt ?? ""),
+                                  ),
+                                ),
+                              ),
                             ),
                             title: Padding(
                               padding: const EdgeInsets.only(right: 20),
                               child: Text(
                                 song.trackName ?? "-",
-                                style: const TextStyle(fontSize: 15),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: currentPlayingSongIndex == index ? Colors.deepPurple : null,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -109,6 +173,62 @@ class _HomePageState extends ConsumerState<HomePage> {
                     },
                   ),
                 ),
+                SizedBox(
+                  width: AppMethods().getWidth(context) * 0.95,
+                  child: Consumer(builder: (context, ref, child) {
+                    final currentPlayingSong = ref.watch(selectedSongProvider);
+                    final isPlaying = ref.watch(isPlayingProvider);
+                    return currentPlayingSong != null
+                        ? Card(
+                            color: Colors.deepPurple[100],
+                            shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(45)),
+                            clipBehavior: Clip.hardEdge,
+                            child: Stack(
+                              clipBehavior: Clip.hardEdge,
+                              children: [
+                                Container(
+                                  child: ImageFiltered(
+                                      imageFilter: ImageFilter.blur(sigmaX: 45, sigmaY: 55),
+                                      child: Image.memory(
+                                        AppMethods().imageConversion(currentPlayingSong.albumArt ?? ""),
+                                        width: AppMethods().getWidth(context),
+                                        height: AppMethods().getHeight(context) * 0.05,
+                                        fit: BoxFit.cover,
+                                      )),
+                                ),
+                                Container(
+                                  color: Colors.white54,
+                                  child: ListTile(
+                                    contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                    leading: CircleAvatar(
+                                      radius: 25,
+                                      backgroundImage: MemoryImage(
+                                        AppMethods().imageConversion(currentPlayingSong.albumArt ?? ""),
+                                      ),
+                                    ),
+                                    trailing: IconButton(
+                                      onPressed: () async {
+                                        final audioPlayer = ref.read(audioPlayerControllerProvider);
+                                        ref.read(isPlayingProvider) ? await audioPlayer.pauseSong() : await audioPlayer.resumeSong();
+                                        ref.read(isPlayingProvider.notifier).state = !ref.read(isPlayingProvider);
+                                      },
+                                      icon: Icon(
+                                        isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    title: Text(
+                                      currentPlayingSong.trackName ?? "",
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : const SizedBox();
+                  }),
+                )
               ],
             );
           } else {
@@ -221,6 +341,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           width: AppMethods().getWidth(context),
                           height: AppMethods().getHeight(context),
                           fit: BoxFit.cover,
+                          gaplessPlayback: true,
                         )),
                   ),
                   Container(

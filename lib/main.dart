@@ -42,14 +42,14 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   getPrefValue() async {
     final pref = await SharedPreferences.getInstance();
-    ref.read(pageChangerProvider.notifier).state = pref.getBool("hasAccount") == null ? false : true;
+    ref.read(homePageChangerProvider.notifier).state = pref.getBool("hasAccount") == null ? false : true;
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
-        final hasAccount = ref.watch(pageChangerProvider);
+        final hasAccount = ref.watch(homePageChangerProvider);
         return hasAccount ? const HomePage() : const IndexPage();
       },
     );

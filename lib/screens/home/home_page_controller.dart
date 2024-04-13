@@ -16,6 +16,7 @@ final sliderValueProvider = StateProvider<double>((ref) => 0.0);
 final songMaxValueProvider = StateProvider<double>((ref) => 1.0);
 final isPlayingProvider = StateProvider((ref) => false);
 final isRepeatModeProvider = StateProvider<bool>((ref) => false);
+final textFieldSwithcerProvider = StateProvider<bool>((ref) => false);
 
 final audioPlayerControllerProvider = Provider((ref) => AudioPlayerController(ref: ref));
 
@@ -98,6 +99,7 @@ class HomePageController {
   getDBSongs() async {
     final data = await DbHelper().getSongs();
     ref.read(mp3SongListProvider.notifier).state = data;
+    return data;
   }
 }
 

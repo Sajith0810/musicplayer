@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mp3player/helpers/app_methods.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -19,6 +22,10 @@ class IndexPageController {
     return androidInfo.version.release;
   }
 
+  scanFiles() async {
+    await ref.read(homePageControllerProvider).scanAllMp3Files();
+  }
+
   Future<bool> checkPermission(context) async {
     String androidVersion = await checkAndroidVersion();
     Permission permission = int.parse(androidVersion) < 13 ? Permission.storage : Permission.audio;
@@ -27,7 +34,7 @@ class IndexPageController {
       ref.read(homePageControllerProvider).getDBSongs();
       final mp3Songs = ref.read(mp3SongListProvider);
       if (mp3Songs.isEmpty) {
-        await ref.read(homePageControllerProvider).scanAllMp3Files();
+        await compute(scanFiles(), noSuchMethod);
       }
       return true;
     } else {
@@ -35,7 +42,8 @@ class IndexPageController {
         await ref.read(homePageControllerProvider).getDBSongs();
         final mp3Songs = ref.read(mp3SongListProvider);
         if (mp3Songs.isEmpty) {
-          await ref.read(homePageControllerProvider).scanAllMp3Files();
+          await compute(scanFiles(), noSuchMethod);
+          // await ref.read(homePageControllerProvider).scanAllMp3Files();
         }
         return true;
       } else {
