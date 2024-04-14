@@ -34,7 +34,8 @@ class IndexPageController {
       ref.read(homePageControllerProvider).getDBSongs();
       final mp3Songs = ref.read(mp3SongListProvider);
       if (mp3Songs.isEmpty) {
-        await compute(scanFiles(), noSuchMethod);
+        await scanFiles();
+        // await compute(scanFiles(), noSuchMethod);
       }
       return true;
     } else {
@@ -42,7 +43,8 @@ class IndexPageController {
         await ref.read(homePageControllerProvider).getDBSongs();
         final mp3Songs = ref.read(mp3SongListProvider);
         if (mp3Songs.isEmpty) {
-          await compute(scanFiles(), noSuchMethod);
+          await scanFiles();
+          // await compute(scanFiles(), noSuchMethod);
           // await ref.read(homePageControllerProvider).scanAllMp3Files();
         }
         return true;

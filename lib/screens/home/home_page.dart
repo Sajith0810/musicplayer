@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mp3player/helpers/app_methods.dart';
 import 'package:mp3player/screens/home/home_page_controller.dart';
 import 'package:shimmer/shimmer.dart';
@@ -106,7 +107,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   child: ListView.builder(
                     shrinkWrap: true,
                     itemCount: songList.length,
-                    addAutomaticKeepAlives: true,
+                    addRepaintBoundaries: true,
                     physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.normal),
                     itemBuilder: (context, index) {
                       if (songList.isNotEmpty) {
@@ -125,16 +126,18 @@ class _HomePageState extends ConsumerState<HomePage> {
                           child: ListTile(
                             contentPadding: EdgeInsets.zero,
                             horizontalTitleGap: 1,
-                            leading: Container(
-                              height: 100,
-                              width: 100,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                image: DecorationImage(
-                                  image: MemoryImage(
-                                    AppMethods().imageConversion(song.albumArt ?? ""),
-                                  ),
-                                ),
+                            leading: Padding(
+                              padding: const EdgeInsets.only(left: 15, right: 15),
+                              child: Card(
+                                elevation: 0,
+                                clipBehavior: Clip.antiAliasWithSaveLayer,
+                                shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                                child: FadeInImage(
+                                    fit: BoxFit.cover,
+                                    image: MemoryImage(
+                                      AppMethods().imageConversion(song.albumArt ?? ""),
+                                    ),
+                                    placeholder: const AssetImage("assets/bg_images/music-placeholder.png")),
                               ),
                             ),
                             title: Padding(
@@ -143,7 +146,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 song.trackName ?? "-",
                                 style: TextStyle(
                                   fontSize: 15,
-                                  color: currentPlayingSongIndex == index ? Colors.deepPurple : null,
+                                  color: currentPlayingSongIndex == index && ref.read(selectedSongProvider) != null ? Colors.deepPurple : null,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -177,51 +180,62 @@ class _HomePageState extends ConsumerState<HomePage> {
                     final currentPlayingSong = ref.watch(selectedSongProvider);
                     final isPlaying = ref.watch(isPlayingProvider);
                     return currentPlayingSong != null
-                        ? Card(
-                            color: Colors.deepPurple[100],
-                            shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(45)),
-                            clipBehavior: Clip.hardEdge,
-                            child: Stack(
+                        ? InkWell(
+                            onTap: () {
+                              songPage(audioPlayer: audioPlayerController);
+                            },
+                            child: Card(
+                              color: Colors.deepPurple[100],
+                              shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(45)),
                               clipBehavior: Clip.hardEdge,
-                              children: [
-                                Container(
-                                  child: ImageFiltered(
-                                      imageFilter: ImageFilter.blur(sigmaX: 45, sigmaY: 55),
-                                      child: Image.memory(
-                                        AppMethods().imageConversion(currentPlayingSong.albumArt ?? ""),
-                                        width: AppMethods().getWidth(context),
-                                        height: AppMethods().getHeight(context) * 0.05,
-                                        fit: BoxFit.cover,
-                                      )),
-                                ),
-                                Container(
-                                  color: Colors.white54,
-                                  child: ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                                    leading: CircleAvatar(
-                                      radius: 25,
-                                      backgroundImage: MemoryImage(
-                                        AppMethods().imageConversion(currentPlayingSong.albumArt ?? ""),
+                              child: Stack(
+                                clipBehavior: Clip.hardEdge,
+                                children: [
+                                  Container(
+                                    width: AppMethods().getWidth(context),
+                                    height: AppMethods().getHeight(context) * 0.05,
+                                    child: ImageFiltered(
+                                        imageFilter: ImageFilter.blur(sigmaX: 45, sigmaY: 55),
+                                        child: FadeInImage(
+                                            fit: BoxFit.cover,
+                                            image: MemoryImage(
+                                              AppMethods().imageConversion(currentPlayingSong.albumArt ?? ""),
+                                            ),
+                                            placeholder: const AssetImage("assets/bg_images/music-placeholder.png"))),
+                                  ),
+                                  Container(
+                                    color: Colors.white54,
+                                    child: ListTile(
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                      leading: Card(
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(45)),
+                                        clipBehavior: Clip.antiAliasWithSaveLayer,
+                                        child: FadeInImage(
+                                            fit: BoxFit.cover,
+                                            image: MemoryImage(
+                                              AppMethods().imageConversion(currentPlayingSong.albumArt ?? ""),
+                                            ),
+                                            placeholder: const AssetImage("assets/bg_images/music-placeholder.png")),
                                       ),
-                                    ),
-                                    trailing: IconButton(
-                                      onPressed: () async {
-                                        final audioPlayer = ref.read(audioPlayerControllerProvider);
-                                        ref.read(isPlayingProvider) ? await audioPlayer.pauseSong() : await audioPlayer.resumeSong();
-                                        ref.read(isPlayingProvider.notifier).state = !ref.read(isPlayingProvider);
-                                      },
-                                      icon: Icon(
-                                        isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                        color: Colors.black87,
+                                      trailing: IconButton(
+                                        onPressed: () async {
+                                          final audioPlayer = ref.read(audioPlayerControllerProvider);
+                                          ref.read(isPlayingProvider) ? await audioPlayer.pauseSong() : await audioPlayer.resumeSong();
+                                          ref.read(isPlayingProvider.notifier).state = !ref.read(isPlayingProvider);
+                                        },
+                                        icon: Icon(
+                                          isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                          color: Colors.black87,
+                                        ),
                                       ),
-                                    ),
-                                    title: Text(
-                                      currentPlayingSong.trackName ?? "",
-                                      overflow: TextOverflow.ellipsis,
+                                      title: Text(
+                                        currentPlayingSong.trackName ?? "",
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           )
                         : const SizedBox();
@@ -333,14 +347,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                     height: AppMethods().getHeight(context),
                     color: Colors.white,
                     child: ImageFiltered(
-                        imageFilter: ImageFilter.blur(sigmaX: 35, sigmaY: 35),
-                        child: Image.memory(
-                          AppMethods().imageConversion(songData?.albumArt ?? ""),
-                          width: AppMethods().getWidth(context),
-                          height: AppMethods().getHeight(context),
+                      imageFilter: ImageFilter.blur(sigmaX: 35, sigmaY: 35),
+                      child: FadeInImage(
                           fit: BoxFit.cover,
-                          gaplessPlayback: true,
-                        )),
+                          image: MemoryImage(
+                            AppMethods().imageConversion(songData?.albumArt ?? ""),
+                          ),
+                          placeholder: const AssetImage("assets/bg_images/music-placeholder.png")),
+                    ),
                   ),
                   Container(
                     height: AppMethods().getHeight(context),
@@ -353,13 +367,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                           height: 200,
                           width: 200,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            image: DecorationImage(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: FadeInImage(
+                              fit: BoxFit.cover,
                               image: MemoryImage(
                                 AppMethods().imageConversion(songData?.albumArt ?? ""),
                               ),
-                            ),
-                          ),
+                              placeholder: const AssetImage("assets/bg_images/music-placeholder.png")),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 30),
@@ -426,13 +441,23 @@ class _HomePageState extends ConsumerState<HomePage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.shuffle_rounded,
-                                    size: 25,
-                                    color: Colors.black87,
-                                  )),
+                              Consumer(builder: (context, ref, child) {
+                                final isShuffleEnabled = ref.watch(isShuffleEnabledPRovider);
+                                return IconButton(
+                                    style: IconButton.styleFrom(backgroundColor: isShuffleEnabled ? Colors.blueAccent : null),
+                                    onPressed: () {
+                                      if (!isShuffleEnabled) {
+                                        ref.read(audioPlayerControllerProvider).shuffleSongs();
+                                      } else {
+                                        ref.read(audioPlayerControllerProvider).sortSongs();
+                                      }
+                                    },
+                                    icon: const Icon(
+                                      Icons.shuffle_rounded,
+                                      size: 25,
+                                      color: Colors.black87,
+                                    ));
+                              }),
                               IconButton(
                                   onPressed: () {
                                     audioPlayer.changeSong(isForward: false);

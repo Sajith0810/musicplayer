@@ -47,19 +47,16 @@ class _IndexPageState extends State<IndexPage> {
                     height: MediaQuery.of(context).size.height * 0.5,
                     width: MediaQuery.of(context).size.width * 0.9,
                   ),
-                  Consumer(builder: (context, ref, child) {
-                    return ref.watch(scanPageLoaderProvider)
-                        ? SvgPicture.asset(
-                            "assets/bg_images/search_bg.svg",
-                            height: MediaQuery.of(context).size.height * 0.5,
-                            width: MediaQuery.of(context).size.width * 0.9,
-                          )
-                        : SvgPicture.asset(
-                            "assets/bg_images/permission_bg.svg",
-                            height: MediaQuery.of(context).size.height * 0.5,
-                            width: MediaQuery.of(context).size.width * 0.9,
-                          );
-                  })
+                  SvgPicture.asset(
+                    "assets/bg_images/permission_bg.svg",
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    width: MediaQuery.of(context).size.width * 0.9,
+                  ),
+                  SvgPicture.asset(
+                    "assets/bg_images/search_bg.svg",
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    width: MediaQuery.of(context).size.width * 0.9,
+                  )
                 ],
               );
             }),
@@ -74,7 +71,7 @@ class _IndexPageState extends State<IndexPage> {
                   children: [
                     PageViewDotIndicator(
                       currentItem: index,
-                      count: 2,
+                      count: 3,
                       unselectedColor: Colors.black26,
                       selectedColor: Colors.deepPurpleAccent,
                       size: const Size(20, 8),
@@ -90,22 +87,22 @@ class _IndexPageState extends State<IndexPage> {
                     Column(
                       children: [
                         Text(
-                          ref.watch(scanPageLoaderProvider)
-                              ? "Please Be Patient !"
-                              : index == 0
-                                  ? "Let's Enjoy the way"
-                                  : index == 1
-                                      ? "I need your Permission to engage !"
-                                      : "",
+                          index == 0
+                              ? "Let's Enjoy the way"
+                              : index == 1
+                                  ? "I need your Permission to engage !"
+                                  : index == 3 && ref.watch(scanPageLoaderProvider)
+                                      ? "Please be Patient"
+                                      : "Let's Rock",
                           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 1),
                         ),
                         Text(
-                          ref.watch(scanPageLoaderProvider)
-                              ? "This won't take much time"
-                              : index == 0
-                                  ? "Shall we move to the music world ?"
-                                  : index == 1
-                                      ? "Can i take it ?"
+                          index == 0
+                              ? "Shall we move to the music world ?"
+                              : index == 1
+                                  ? "Can i take it ?"
+                                  : index == 3 && ref.watch(scanPageLoaderProvider)
+                                      ? "This won't take much time"
                                       : "",
                           style: const TextStyle(
                             fontSize: 16,
@@ -122,16 +119,18 @@ class _IndexPageState extends State<IndexPage> {
                           : FilledButton(
                               onPressed: () async {
                                 int page = _pageController.page!.toInt();
-                                if (page != 1) {
+                                if (page != 2) {
                                   _pageController.nextPage(
                                     duration: const Duration(milliseconds: 500),
                                     curve: Curves.linear,
                                   );
-                                } else {
-                                  await indexPage.checkPermission(context);
+                                } else if (page == 2) {
                                   Navigator.pushNamedAndRemoveUntil(context, AppID.HOME, (route) => false);
                                   final pref = await SharedPreferences.getInstance();
                                   await pref.setBool("hasAccount", true);
+                                }
+                                if (page == 1) {
+                                  await indexPage.checkPermission(context);
                                 }
                               },
                               child: const Icon(

@@ -17,6 +17,7 @@ final songMaxValueProvider = StateProvider<double>((ref) => 1.0);
 final isPlayingProvider = StateProvider((ref) => false);
 final isRepeatModeProvider = StateProvider<bool>((ref) => false);
 final textFieldSwithcerProvider = StateProvider<bool>((ref) => false);
+final isShuffleEnabledPRovider = StateProvider<bool>((ref) => false);
 
 final audioPlayerControllerProvider = Provider((ref) => AudioPlayerController(ref: ref));
 
@@ -109,14 +110,14 @@ class AudioPlayerController {
 
   AudioPlayerController({required this.ref}) {
     print("init called");
-    audioPlayer.onPlayerComplete.listen((event) {
-      changeSong();
+    audioPlayer.onDurationChanged.listen((event) {
+      ref.read(songMaxValueProvider.notifier).state = event.inSeconds.toDouble();
     });
     audioPlayer.onPositionChanged.listen((event) {
       ref.read(sliderValueProvider.notifier).state = event.inSeconds.toDouble();
     });
-    audioPlayer.onDurationChanged.listen((event) {
-      ref.read(songMaxValueProvider.notifier).state = event.inSeconds.toDouble();
+    audioPlayer.onPlayerComplete.listen((event) {
+      changeSong();
     });
   }
 
@@ -177,5 +178,21 @@ class AudioPlayerController {
     pauseSong();
     playSong(songPath: ref.read(selectedSongProvider)!.file);
     ref.read(isPlayingProvider.notifier).state = true;
+  }
+
+  shuffleSongs() async {
+    final sortedSongs = ref.read(mp3SongListProvider);
+    sortedSongs.shuffle();
+    ref.refresh(mp3SongListProvider);
+    ref.read(mp3SongListProvider.notifier).state = sortedSongs;
+    ref.read(isShuffleEnabledPRovider.notifier).state = true;
+  }
+
+  sortSongs() {
+    final shuffledSongs = ref.read(mp3SongListProvider);
+    shuffledSongs.sort((a, b) => a.trackName.toString().compareTo(b.trackName.toString()));
+    ref.refresh(mp3SongListProvider);
+    ref.read(mp3SongListProvider.notifier).state = shuffledSongs;
+    ref.read(isShuffleEnabledPRovider.notifier).state = false;
   }
 }
