@@ -66,6 +66,7 @@ class _IndexPageState extends State<IndexPage> {
             child: Consumer(
               builder: (context, ref, child) {
                 final index = ref.watch(pageChangerProvider);
+                final isLoading = ref.watch(scanPageLoaderProvider);
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -91,7 +92,7 @@ class _IndexPageState extends State<IndexPage> {
                               ? "Let's Enjoy the way"
                               : index == 1
                                   ? "I need your Permission to engage !"
-                                  : index == 3 && ref.watch(scanPageLoaderProvider)
+                                  : index == 3 && isLoading
                                       ? "Please be Patient"
                                       : "Let's Rock",
                           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 1),
@@ -101,7 +102,7 @@ class _IndexPageState extends State<IndexPage> {
                               ? "Shall we move to the music world ?"
                               : index == 1
                                   ? "Can i take it ?"
-                                  : index == 3 && ref.watch(scanPageLoaderProvider)
+                                  : index == 3 && isLoading
                                       ? "This won't take much time"
                                       : "",
                           style: const TextStyle(

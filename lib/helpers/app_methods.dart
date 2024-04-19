@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -24,6 +25,12 @@ class AppMethods {
   Uint8List imageConversion(String? img) {
     List<int> image = json.decode(img!).cast<int>();
     return Uint8List.fromList(image);
+  }
+
+  checkAndroidVersion() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    return androidInfo.version.release;
   }
 
   showAlert({required BuildContext context, required String message}) async {

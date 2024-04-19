@@ -2,10 +2,11 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mp3player/helpers/app_methods.dart';
 import 'package:mp3player/screens/home/home_page_controller.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shimmer/shimmer.dart';
+
 import '../../models/song_model.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -24,6 +25,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     animation = Tween<double>(begin: 0, end: 300);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      await getPerimissionStatus();
       songs = await ref.read(homePageControllerProvider).getDBSongs();
       // await compute(scanFiles(), noSuchMethod);
     });
@@ -99,7 +101,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       body: Consumer(
         builder: (context, ref, child) {
           List<SongsModel> songList = ref.watch(mp3SongListProvider);
-          final currentPlayingSongIndex = ref.watch(selectedSongIndexProvider);
+          final currentPlayingSong = ref.watch(selectedSongProvider);
           if (songList.isNotEmpty) {
             return Column(
               children: [
@@ -107,7 +109,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   child: ListView.builder(
                     shrinkWrap: true,
                     itemCount: songList.length,
-                    addRepaintBoundaries: true,
+                    cacheExtent: 10,
                     physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.normal),
                     itemBuilder: (context, index) {
                       if (songList.isNotEmpty) {
@@ -146,14 +148,27 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 song.trackName ?? "-",
                                 style: TextStyle(
                                   fontSize: 15,
-                                  color: currentPlayingSongIndex == index && ref.read(selectedSongProvider) != null ? Colors.deepPurple : null,
+                                  color: currentPlayingSong?.trackName == song.trackName ? Colors.deepPurple : Colors.black,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            trailing: const Padding(
-                              padding: EdgeInsets.only(right: 13),
-                              child: Icon(Icons.more_vert_rounded),
+                            trailing: Padding(
+                              padding: const EdgeInsets.only(right: 13),
+                              child: PopupMenuButton(
+                                shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                                offset: const Offset(0, 45),
+                                elevation: 15,
+                                onSelected: (val) {
+                                  if (val == "Delete") {
+                                    ref.read(homePageControllerProvider).deleteSongs(song: song, index: index, context: context);
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(value: "Share", child: Text("Share")),
+                                  const PopupMenuItem(value: "Delete", child: Text("Delete")),
+                                ],
+                              ),
                             ),
                             subtitle: Padding(
                               padding: const EdgeInsets.only(right: 20),
@@ -244,90 +259,118 @@ class _HomePageState extends ConsumerState<HomePage> {
               ],
             );
           } else {
-            return Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: 15,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Shimmer.fromColors(
-                              baseColor: Colors.grey[300]!, // Light gray for shimmer effect
-                              highlightColor: Colors.grey[100]!, // Lighter gray for highlight
-                              child: Container(
-                                width: 70.0,
-                                height: 70.0,
-                                decoration: BoxDecoration(
-                                  color: Colors.white, // Color for actual image (hidden initially)
-                                  borderRadius: BorderRadius.circular(8.0),
+            return Consumer(builder: (context, ref, child) {
+              final isShimmerNeeded = ref.watch(isPermissionGrantedShimmerProvider);
+              return isShimmerNeeded
+                  ? Column(
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: 15,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Shimmer.fromColors(
+                                      baseColor: Colors.grey[300]!, // Light gray for shimmer effect
+                                      highlightColor: Colors.grey[100]!, // Lighter gray for highlight
+                                      child: Container(
+                                        width: 70.0,
+                                        height: 70.0,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white, // Color for actual image (hidden initially)
+                                          borderRadius: BorderRadius.circular(8.0),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 20.0), // Spacing between image and text
+                                    Flexible(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Shimmer.fromColors(
+                                            baseColor: Colors.grey[300]!,
+                                            highlightColor: Colors.grey[100]!,
+                                            child: Container(
+                                              height: 16.0,
+                                              width: AppMethods().getWidth(context), // Height for one line of text
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white, borderRadius: BorderRadius.circular(8)), // Hidden color for actual text
+                                              child: const Text(
+                                                '',
+                                                style: TextStyle(fontSize: 16.0),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4.0), // Spacing between text lines
+                                          Shimmer.fromColors(
+                                            baseColor: Colors.grey[300]!,
+                                            highlightColor: Colors.grey[100]!,
+                                            child: Container(
+                                              height: 16.0,
+                                              width: AppMethods().getWidth(context),
+                                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                                              child: const Text(
+                                                '',
+                                                style: TextStyle(fontSize: 16.0),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4.0), // Spacing between text lines
+                                          Shimmer.fromColors(
+                                            baseColor: Colors.grey[300]!,
+                                            highlightColor: Colors.grey[100]!,
+                                            child: Container(
+                                              height: 16.0,
+                                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                                              child: const Text(
+                                                '',
+                                                style: TextStyle(fontSize: 16.0),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 20.0), // Spacing between image and text
-                            Flexible(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Shimmer.fromColors(
-                                    baseColor: Colors.grey[300]!,
-                                    highlightColor: Colors.grey[100]!,
-                                    child: Container(
-                                      height: 16.0,
-                                      width: AppMethods().getWidth(context), // Height for one line of text
-                                      decoration:
-                                          BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)), // Hidden color for actual text
-                                      child: const Text(
-                                        '',
-                                        style: TextStyle(fontSize: 16.0),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4.0), // Spacing between text lines
-                                  Shimmer.fromColors(
-                                    baseColor: Colors.grey[300]!,
-                                    highlightColor: Colors.grey[100]!,
-                                    child: Container(
-                                      height: 16.0,
-                                      width: AppMethods().getWidth(context),
-                                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                                      child: const Text(
-                                        '',
-                                        style: TextStyle(fontSize: 16.0),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4.0), // Spacing between text lines
-                                  Shimmer.fromColors(
-                                    baseColor: Colors.grey[300]!,
-                                    highlightColor: Colors.grey[100]!,
-                                    child: Container(
-                                      height: 16.0,
-                                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                                      child: const Text(
-                                        '',
-                                        style: TextStyle(fontSize: 16.0),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                              );
+                            },
+                          ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
+                      ],
+                    )
+                  : Center(
+                      child: Column(
+                        children: [
+                          const Text("Needed Permission to access file"),
+                          ElevatedButton(
+                              onPressed: () async {
+                                await openAppSettings();
+                              },
+                              child: const Text("Allow Access"))
+                        ],
+                      ),
+                    );
+            });
           }
         },
       ),
     );
+  }
+
+  getPerimissionStatus() async {
+    final androidVersion = await AppMethods().checkAndroidVersion();
+    final convertedAndroidVersion = int.parse(androidVersion);
+    bool isGranted;
+    if (convertedAndroidVersion < 13) {
+      isGranted = await Permission.storage.isGranted;
+    } else {
+      isGranted = await Permission.audio.isGranted;
+    }
+    ref.read(isPermissionGrantedShimmerProvider.notifier).state = isGranted;
   }
 
   songPage({required AudioPlayerController audioPlayer}) {
@@ -349,6 +392,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     child: ImageFiltered(
                       imageFilter: ImageFilter.blur(sigmaX: 35, sigmaY: 35),
                       child: FadeInImage(
+                          fadeInDuration: const Duration(milliseconds: 400),
                           fit: BoxFit.cover,
                           image: MemoryImage(
                             AppMethods().imageConversion(songData?.albumArt ?? ""),
@@ -361,149 +405,198 @@ class _HomePageState extends ConsumerState<HomePage> {
                     width: AppMethods().getWidth(context),
                     color: Colors.white54,
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
-                          height: 200,
-                          width: 200,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: FadeInImage(
-                              fit: BoxFit.cover,
-                              image: MemoryImage(
-                                AppMethods().imageConversion(songData?.albumArt ?? ""),
+                        Expanded(
+                          flex: 1,
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 35),
+                              child: IconButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                icon: const Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  size: 35,
+                                  color: Colors.black,
+                                ),
                               ),
-                              placeholder: const AssetImage("assets/bg_images/music-placeholder.png")),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 30),
-                          child: Text(
-                            songData?.trackName ?? "-",
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Text(
-                            songData?.albumArtistName ?? "-",
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Consumer(builder: (context, ref, child) {
-                            final sliderValue = ref.watch(sliderValueProvider);
-                            final songMax = ref.watch(songMaxValueProvider);
-                            return Column(
-                              children: [
-                                Slider(
-                                  value: sliderValue,
-                                  min: 0.0,
-                                  max: songMax + 1,
-                                  activeColor: Colors.black,
-                                  secondaryActiveColor: Colors.black87,
-                                  onChanged: (val) {
-                                    audioPlayer.seekSong(seekedPosition: val.toInt());
-                                  },
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        audioPlayer.convertSecondsToMinutes(
-                                          sliderValue.toInt(),
-                                        ),
-                                        style: const TextStyle(fontSize: 15),
-                                      ),
-                                      Text(
-                                        audioPlayer.convertSecondsToMinutes(
-                                          songMax.toInt(),
-                                        ),
-                                        style: const TextStyle(fontSize: 15),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            );
-                          }),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        Expanded(
+                          flex: 8,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Consumer(builder: (context, ref, child) {
-                                final isShuffleEnabled = ref.watch(isShuffleEnabledPRovider);
-                                return IconButton(
-                                    style: IconButton.styleFrom(backgroundColor: isShuffleEnabled ? Colors.blueAccent : null),
-                                    onPressed: () {
-                                      if (!isShuffleEnabled) {
-                                        ref.read(audioPlayerControllerProvider).shuffleSongs();
-                                      } else {
-                                        ref.read(audioPlayerControllerProvider).sortSongs();
-                                      }
-                                    },
-                                    icon: const Icon(
-                                      Icons.shuffle_rounded,
-                                      size: 25,
-                                      color: Colors.black87,
-                                    ));
-                              }),
-                              IconButton(
-                                  onPressed: () {
-                                    audioPlayer.changeSong(isForward: false);
-                                  },
-                                  icon: const Icon(
-                                    Icons.skip_previous_rounded,
-                                    size: 25,
+                              /// IMAGE
+                              SizedBox(
+                                height: 200,
+                                width: 200,
+                                child: Card(
+                                  shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(65)),
+                                  clipBehavior: Clip.antiAliasWithSaveLayer,
+                                  child: FadeInImage(
+                                      fit: BoxFit.cover,
+                                      image: MemoryImage(
+                                        AppMethods().imageConversion(songData?.albumArt ?? ""),
+                                      ),
+                                      placeholder: const AssetImage("assets/bg_images/music-placeholder.png")),
+                                ),
+                              ),
+
+                              /// SONG NAME
+                              Padding(
+                                padding: const EdgeInsets.only(top: 30, left: 25, right: 25),
+                                child: Text(
+                                  songData?.trackName ?? "-",
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+
+                              /// ARTIST NAME
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10),
+                                child: Text(
+                                  songData?.albumArtistName ?? "-",
+                                  style: const TextStyle(
+                                    fontSize: 15,
                                     color: Colors.black87,
-                                  )),
-                              IconButton(
-                                onPressed: () async {
-                                  ref.read(isPlayingProvider) ? await audioPlayer.pauseSong() : await audioPlayer.resumeSong();
-                                  ref.read(isPlayingProvider.notifier).state = !ref.read(isPlayingProvider);
-                                },
-                                style: IconButton.styleFrom(backgroundColor: Colors.black87),
-                                icon: Consumer(builder: (context, ref, child) {
-                                  final isPlaying = ref.watch(isPlayingProvider);
-                                  return Icon(
-                                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                    size: 35,
-                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+
+                              /// SLIDER
+                              Padding(
+                                padding: const EdgeInsets.only(top: 20),
+                                child: Consumer(builder: (context, ref, child) {
+                                  final sliderValue = ref.watch(sliderValueProvider);
+                                  final songMax = ref.watch(songMaxValueProvider);
+                                  return Column(
+                                    children: [
+                                      Slider(
+                                        value: sliderValue,
+                                        min: 0.0,
+                                        max: songMax + 1,
+                                        activeColor: Colors.black,
+                                        inactiveColor: Colors.black38,
+                                        onChanged: (double value) {
+                                          audioPlayer.seekSong(seekedPosition: value.toInt());
+                                        },
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              audioPlayer.convertSecondsToMinutes(
+                                                sliderValue.toInt(),
+                                              ),
+                                              style: const TextStyle(fontSize: 15),
+                                            ),
+                                            Text(
+                                              audioPlayer.convertSecondsToMinutes(
+                                                songMax.toInt(),
+                                              ),
+                                              style: const TextStyle(fontSize: 15),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    ],
                                   );
                                 }),
                               ),
-                              IconButton(
-                                  onPressed: () async {
-                                    await audioPlayer.changeSong();
-                                  },
-                                  icon: const Icon(
-                                    Icons.skip_next_rounded,
-                                    size: 25,
-                                    color: Colors.black87,
-                                  )),
-                              Consumer(builder: (context, ref, child) {
-                                final isRepeat = ref.watch(isRepeatModeProvider);
-                                return IconButton(
-                                    onPressed: () {
-                                      ref.read(isRepeatModeProvider.notifier).state = !ref.read(isRepeatModeProvider);
-                                    },
-                                    style: IconButton.styleFrom(backgroundColor: isRepeat ? Colors.blueAccent : null),
-                                    icon: const Icon(
-                                      Icons.repeat_rounded,
-                                      size: 25,
-                                      color: Colors.black87,
-                                    ));
-                              }),
+
+                              /// AUDIO BUTTONS
+                              Padding(
+                                padding: const EdgeInsets.only(top: 35),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    /// SHUFFLE
+                                    Consumer(builder: (context, ref, child) {
+                                      final isShuffleEnabled = ref.watch(isShuffleEnabledPRovider);
+                                      return IconButton(
+                                          style: IconButton.styleFrom(backgroundColor: isShuffleEnabled ? Colors.blueAccent : null),
+                                          onPressed: () {
+                                            if (!isShuffleEnabled) {
+                                              ref.read(audioPlayerControllerProvider).shuffleSongs();
+                                            } else {
+                                              ref.read(audioPlayerControllerProvider).sortSongs();
+                                            }
+                                          },
+                                          icon: const Icon(
+                                            Icons.shuffle_rounded,
+                                            size: 25,
+                                            color: Colors.black87,
+                                          ));
+                                    }),
+
+                                    /// PREVIOUS
+                                    IconButton(
+                                        onPressed: () {
+                                          audioPlayer.changeSong(isForward: false);
+                                        },
+                                        icon: const Icon(
+                                          Icons.skip_previous_rounded,
+                                          size: 30,
+                                          color: Colors.black87,
+                                        )),
+
+                                    /// PLAY OR PAUSE
+                                    IconButton(
+                                      onPressed: () async {
+                                        ref.read(isPlayingProvider) ? await audioPlayer.pauseSong() : await audioPlayer.resumeSong();
+                                        ref.read(isPlayingProvider.notifier).state = !ref.read(isPlayingProvider);
+                                      },
+                                      style: IconButton.styleFrom(backgroundColor: Colors.black87),
+                                      icon: Consumer(builder: (context, ref, child) {
+                                        final isPlaying = ref.watch(isPlayingProvider);
+                                        return Icon(
+                                          isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                          size: 35,
+                                          color: Colors.white,
+                                        );
+                                      }),
+                                    ),
+
+                                    /// NEXT
+                                    IconButton(
+                                        onPressed: () async {
+                                          await audioPlayer.changeSong();
+                                        },
+                                        icon: const Icon(
+                                          Icons.skip_next_rounded,
+                                          size: 30,
+                                          color: Colors.black87,
+                                        )),
+
+                                    /// REPEAT
+                                    Consumer(builder: (context, ref, child) {
+                                      final isRepeat = ref.watch(isRepeatModeProvider);
+                                      return IconButton(
+                                          onPressed: () {
+                                            ref.read(isRepeatModeProvider.notifier).state = !ref.read(isRepeatModeProvider);
+                                          },
+                                          style: IconButton.styleFrom(backgroundColor: isRepeat ? Colors.blueAccent : null),
+                                          icon: const Icon(
+                                            Icons.repeat_rounded,
+                                            size: 25,
+                                            color: Colors.black87,
+                                          ));
+                                    }),
+                                  ],
+                                ),
+                              )
                             ],
                           ),
                         )

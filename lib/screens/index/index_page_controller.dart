@@ -16,19 +16,14 @@ class IndexPageController {
 
   const IndexPageController({required this.ref});
 
-  checkAndroidVersion() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    return androidInfo.version.release;
-  }
-
   scanFiles() async {
     await ref.read(homePageControllerProvider).scanAllMp3Files();
   }
 
   Future<bool> checkPermission(context) async {
-    String androidVersion = await checkAndroidVersion();
-    Permission permission = int.parse(androidVersion) < 13 ? Permission.storage : Permission.audio;
+    String androidVersion = await AppMethods().checkAndroidVersion();
+    Permission permission =
+        int.parse(androidVersion.contains(".") ? androidVersion.split(".")[0] : androidVersion) < 13 ? Permission.storage : Permission.audio;
     bool storageGranted = await permission.isGranted;
     if (storageGranted) {
       ref.read(homePageControllerProvider).getDBSongs();

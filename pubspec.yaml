@@ -45,6 +45,7 @@ dependencies:
   audioplayers: ^6.0.0
   path_provider: ^2.1.2
   google_fonts: ^6.2.1
+  awesome_notifications: ^0.9.3+1
 
 
   path: any
@@ -60,6 +61,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
+  flutter_native_splash: ^2.4.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -101,3 +103,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+flutter_native_splash:
+  image: "assets/bg_images/guitar.png"
+  color: "#42a5f5"
+  android_12:
+    image: "assets/bg_images/guitar.png"
+    color: "#42a5f5"

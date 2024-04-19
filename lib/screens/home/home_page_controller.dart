@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_media_metadata/flutter_media_metadata.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mp3player/helpers/app_methods.dart';
 import 'package:mp3player/helpers/db_helper.dart';
 import 'package:mp3player/models/song_model.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,6 +19,7 @@ final isPlayingProvider = StateProvider((ref) => false);
 final isRepeatModeProvider = StateProvider<bool>((ref) => false);
 final textFieldSwithcerProvider = StateProvider<bool>((ref) => false);
 final isShuffleEnabledPRovider = StateProvider<bool>((ref) => false);
+final isPermissionGrantedShimmerProvider = StateProvider<bool>((ref) => false);
 
 final audioPlayerControllerProvider = Provider((ref) => AudioPlayerController(ref: ref));
 
@@ -102,6 +104,22 @@ class HomePageController {
     ref.read(mp3SongListProvider.notifier).state = data;
     return data;
   }
+
+  deleteSongs({required SongsModel song, required int index, required context}) async {
+    final selectedSongPath = File("/${song.file}");
+    if (await selectedSongPath.exists()) {
+      await selectedSongPath.delete();
+      final oldSongs = ref.read(mp3SongListProvider);
+      oldSongs.removeAt(index);
+      ref.refresh(mp3SongListProvider);
+      ref.read(mp3SongListProvider.notifier).state = oldSongs;
+    } else {
+      AppMethods().showAlert(
+        context: context,
+        message: "Song doesn't exist",
+      );
+    }
+  }
 }
 
 class AudioPlayerController {
@@ -122,7 +140,6 @@ class AudioPlayerController {
   }
 
   playSong({required String songPath}) async {
-    print(" path : $songPath");
     await audioPlayer.play(DeviceFileSource(songPath));
   }
 
