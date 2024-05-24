@@ -67,6 +67,7 @@ class _IndexPageState extends State<IndexPage> {
               builder: (context, ref, child) {
                 final index = ref.watch(pageChangerProvider);
                 final isLoading = ref.watch(scanPageLoaderProvider);
+                print("index : ${index}");
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [

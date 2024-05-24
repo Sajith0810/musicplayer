@@ -114,7 +114,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                     itemBuilder: (context, index) {
                       if (songList.isNotEmpty) {
                         SongsModel song = songList[index];
-                        precacheImage(MemoryImage(AppMethods().imageConversion(song.albumArt!)), context);
                         return InkWell(
                           onTap: () {
                             ref.read(selectedSongIndexProvider.notifier).state = index;
@@ -136,9 +135,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(25)),
                                 child: FadeInImage(
                                     fit: BoxFit.cover,
-                                    image: MemoryImage(
-                                      AppMethods().imageConversion(song.albumArt ?? ""),
-                                    ),
+                                    imageErrorBuilder: (context, error, stackTrace) => Image.asset("assets/bg_images/music-placeholder.png"),
+                                    image: MemoryImage(AppMethods().imageConversion(song.albumArt!)),
                                     placeholder: const AssetImage("assets/bg_images/music-placeholder.png")),
                               ),
                             ),
@@ -213,6 +211,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         imageFilter: ImageFilter.blur(sigmaX: 45, sigmaY: 55),
                                         child: FadeInImage(
                                             fit: BoxFit.cover,
+                                            imageErrorBuilder: (context, error, stackTrace) => Image.asset("assets/bg_images/music-placeholder.png"),
                                             image: MemoryImage(
                                               AppMethods().imageConversion(currentPlayingSong.albumArt ?? ""),
                                             ),
@@ -227,6 +226,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         clipBehavior: Clip.antiAliasWithSaveLayer,
                                         child: FadeInImage(
                                             fit: BoxFit.cover,
+                                            imageErrorBuilder: (context, error, stackTrace) => Image.asset("assets/bg_images/music-placeholder.png"),
                                             image: MemoryImage(
                                               AppMethods().imageConversion(currentPlayingSong.albumArt ?? ""),
                                             ),

@@ -93,7 +93,7 @@ class HomePageController {
         mimeType: metaData.mimeType,
         trackDuration: metaData.trackDuration.toString(),
         bitrate: metaData.bitrate.toString(),
-        albumArt: metaData.albumArt.toString(),
+        albumArt: String.fromCharCodes(metaData.albumArt ?? []),
         file: file.path,
       ),
     );
@@ -127,7 +127,6 @@ class AudioPlayerController {
   final audioPlayer = AudioPlayer();
 
   AudioPlayerController({required this.ref}) {
-    print("init called");
     audioPlayer.onDurationChanged.listen((event) {
       ref.read(songMaxValueProvider.notifier).state = event.inSeconds.toDouble();
     });

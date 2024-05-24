@@ -1,4 +1,3 @@
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -44,7 +43,8 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   getPrefValue() async {
     final pref = await SharedPreferences.getInstance();
-    ref.read(homePageChangerProvider.notifier).state = pref.getBool("hasAccount") == null ? false : true;
+    ref.read(homePageChangerProvider.notifier).state =
+        pref.getBool("hasAccount") == null ? false : true;
   }
 
   @override

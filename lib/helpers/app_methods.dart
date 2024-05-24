@@ -22,9 +22,11 @@ class AppMethods {
     return MediaQuery.of(context).size.height;
   }
 
-  Uint8List imageConversion(String? img) {
-    List<int> image = json.decode(img!).cast<int>();
-    return Uint8List.fromList(image);
+  Uint8List imageConversion(String str) {
+    final List<int> codeUnits = str.codeUnits;
+    final Uint8List unit8List = Uint8List.fromList(codeUnits);
+
+    return unit8List;
   }
 
   checkAndroidVersion() async {
@@ -40,6 +42,7 @@ class AppMethods {
         return AlertDialog(
           title: const Text("Alert"),
           content: Text(message.toString()),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
           actions: [
             FilledButton(
               onPressed: () {

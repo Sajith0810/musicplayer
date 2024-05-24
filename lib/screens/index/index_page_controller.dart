@@ -1,10 +1,8 @@
-import 'dart:async';
+import 'dart:isolate';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mp3player/helpers/app_methods.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 
 import '../home/home_page_controller.dart';
 
@@ -30,7 +28,7 @@ class IndexPageController {
       final mp3Songs = ref.read(mp3SongListProvider);
       if (mp3Songs.isEmpty) {
         await scanFiles();
-        // await compute(scanFiles(), noSuchMethod);
+        // await Isolate.run(() => );
       }
       return true;
     } else {
@@ -39,8 +37,7 @@ class IndexPageController {
         final mp3Songs = ref.read(mp3SongListProvider);
         if (mp3Songs.isEmpty) {
           await scanFiles();
-          // await compute(scanFiles(), noSuchMethod);
-          // await ref.read(homePageControllerProvider).scanAllMp3Files();
+          //await Isolate.run(() => scanFiles());
         }
         return true;
       } else {
