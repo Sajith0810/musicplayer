@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_media_metadata/flutter_media_metadata.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,7 +31,7 @@ class HomePageController {
 
   const HomePageController({required this.ref});
 
-  Future<List<SongsModel>> scanAllMp3Files() async {
+  Future<void> scanAllMp3Files(SendPort sp) async {
     ref.read(scanPageLoaderProvider.notifier).state = true;
     List<SongsModel> songs = [];
     String path = "";
@@ -45,11 +46,6 @@ class HomePageController {
         path = "${data[1]}/${data[2]}";
         filePath.add(path);
       }
-    }
-
-    /// NEW
-    for (String storageDirPath in filePath) {
-      print("SYNC : ${Directory(storageDirPath).listSync()}");
     }
 
     /// OLD METHOD
@@ -85,7 +81,8 @@ class HomePageController {
         (a, b) => a.trackName.toString().compareTo(b.trackName.toString()));
     await DbHelper().insertSong(songs);
     ref.read(scanPageLoaderProvider.notifier).state = false;
-    return songs;
+    ref.read(mp3SongListProvider.notifier).state = songs;
+    sp.send("success");
   }
 
   addToModel(

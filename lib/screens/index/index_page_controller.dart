@@ -14,10 +14,6 @@ class IndexPageController {
 
   const IndexPageController({required this.ref});
 
-  scanFiles() async {
-    await ref.read(homePageControllerProvider).scanAllMp3Files();
-  }
-
   Future<bool> checkPermission(context) async {
     String androidVersion = await AppMethods().checkAndroidVersion();
     Permission permission = int.parse(androidVersion.contains(".")
@@ -31,8 +27,14 @@ class IndexPageController {
       ref.read(homePageControllerProvider).getDBSongs();
       final mp3Songs = ref.read(mp3SongListProvider);
       if (mp3Songs.isEmpty) {
-        await scanFiles();
+        // await scanFiles();
         final rp = ReceivePort();
+        await Isolate.spawn(scanFiles, rp.sendPort);
+        rp.listen(
+          (message) {
+            print("message : $message");
+          },
+        );
 
         // await Isolate.run(() => );
       }
@@ -42,7 +44,13 @@ class IndexPageController {
         await ref.read(homePageControllerProvider).getDBSongs();
         final mp3Songs = ref.read(mp3SongListProvider);
         if (mp3Songs.isEmpty) {
-          await scanFiles();
+          final rp = ReceivePort();
+          await Isolate.spawn(scanFiles, rp.sendPort);
+          rp.listen(
+            (message) {
+              print("message : $message");
+            },
+          );
           //await Isolate.run(() => scanFiles());
         }
         return true;
@@ -52,5 +60,9 @@ class IndexPageController {
         return false;
       }
     }
+  }
+
+  void scanFiles(sp) async {
+    await ref.read(homePageControllerProvider).scanAllMp3Files(sp);
   }
 }

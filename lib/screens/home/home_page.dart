@@ -32,9 +32,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.initState();
   }
 
-  scanFiles() async {
-    await ref.read(homePageControllerProvider).scanAllMp3Files();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -526,7 +523,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 width: 200,
                                 child: Card(
                                   shape: ContinuousRectangleBorder(
-                                      borderRadius: BorderRadius.circular(65)),
+                                    borderRadius: BorderRadius.circular(65),
+                                  ),
                                   clipBehavior: Clip.antiAliasWithSaveLayer,
                                   child: FadeInImage(
                                       fit: BoxFit.cover,
