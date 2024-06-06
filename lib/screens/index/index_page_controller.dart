@@ -20,14 +20,20 @@ class IndexPageController {
 
   Future<bool> checkPermission(context) async {
     String androidVersion = await AppMethods().checkAndroidVersion();
-    Permission permission =
-        int.parse(androidVersion.contains(".") ? androidVersion.split(".")[0] : androidVersion) < 13 ? Permission.storage : Permission.audio;
+    Permission permission = int.parse(androidVersion.contains(".")
+                ? androidVersion.split(".")[0]
+                : androidVersion) <
+            13
+        ? Permission.storage
+        : Permission.audio;
     bool storageGranted = await permission.isGranted;
     if (storageGranted) {
       ref.read(homePageControllerProvider).getDBSongs();
       final mp3Songs = ref.read(mp3SongListProvider);
       if (mp3Songs.isEmpty) {
         await scanFiles();
+        final rp = ReceivePort();
+
         // await Isolate.run(() => );
       }
       return true;
@@ -41,7 +47,8 @@ class IndexPageController {
         }
         return true;
       } else {
-        await AppMethods().showAlert(context: context, message: "Storage permission is required");
+        await AppMethods().showAlert(
+            context: context, message: "Storage permission is required");
         return false;
       }
     }

@@ -38,7 +38,8 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    AudioPlayerController audioPlayerController = ref.watch(audioPlayerControllerProvider);
+    AudioPlayerController audioPlayerController =
+        ref.watch(audioPlayerControllerProvider);
     return Scaffold(
       appBar: AppBar(
         title: Consumer(builder: (context, ref, child) {
@@ -49,28 +50,35 @@ class _HomePageState extends ConsumerState<HomePage> {
                 curve: Curves.easeIn,
                 tween: animation,
                 builder: (context, value, child) {
-                  print(value);
                   return SizedBox(
                     height: AppMethods().getWidth(context) * 0.1,
                     width: value,
                     child: TextFormField(
                       controller: searchTextController,
                       onChanged: (val) {
-                        print(val);
-                        final data = ref.read(mp3SongListProvider);
-                        final filteredSongs = songs.where((element) => element.trackName!.toLowerCase().contains(val.toLowerCase())).toList();
+                        final filteredSongs = songs
+                            .where((element) => element.trackName!
+                                .toLowerCase()
+                                .contains(val.toLowerCase()))
+                            .toList();
                         if (filteredSongs.isEmpty && val == "") {
                           ref.read(mp3SongListProvider.notifier).state = songs;
                         } else {
-                          ref.read(mp3SongListProvider.notifier).state = filteredSongs;
+                          ref.read(mp3SongListProvider.notifier).state =
+                              filteredSongs;
                         }
                       },
                       decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 15),
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 15),
                           hintFadeDuration: const Duration(milliseconds: 500),
                           hintText: "Search songs",
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(width: 1)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(width: 1))),
+                          enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: const BorderSide(width: 1)),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: const BorderSide(width: 1))),
                     ),
                   );
                 });
@@ -92,7 +100,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         child: Container(
           width: AppMethods().getWidth(context) * 0.72,
           margin: const EdgeInsets.only(left: 10, top: 5, bottom: 5),
-          decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(20))),
+          decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(20))),
           child: const Column(
             children: [],
           ),
@@ -110,17 +120,22 @@ class _HomePageState extends ConsumerState<HomePage> {
                     shrinkWrap: true,
                     itemCount: songList.length,
                     cacheExtent: 10,
-                    physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.normal),
+                    physics: const BouncingScrollPhysics(
+                        decelerationRate: ScrollDecelerationRate.normal),
                     itemBuilder: (context, index) {
                       if (songList.isNotEmpty) {
                         SongsModel song = songList[index];
                         return InkWell(
                           onTap: () {
-                            ref.read(selectedSongIndexProvider.notifier).state = index;
-                            ref.read(selectedSongProvider.notifier).state = song;
+                            ref.read(selectedSongIndexProvider.notifier).state =
+                                index;
+                            ref.read(selectedSongProvider.notifier).state =
+                                song;
                             songPage(audioPlayer: audioPlayerController);
-                            audioPlayerController.playSong(songPath: ref.read(selectedSongProvider)!.file);
-                            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                            audioPlayerController.playSong(
+                                songPath: ref.read(selectedSongProvider)!.file);
+                            WidgetsBinding.instance
+                                .addPostFrameCallback((timeStamp) {
                               ref.read(isPlayingProvider.notifier).state = true;
                             });
                           },
@@ -128,16 +143,23 @@ class _HomePageState extends ConsumerState<HomePage> {
                             contentPadding: EdgeInsets.zero,
                             horizontalTitleGap: 1,
                             leading: Padding(
-                              padding: const EdgeInsets.only(left: 15, right: 15),
+                              padding:
+                                  const EdgeInsets.only(left: 15, right: 15),
                               child: Card(
                                 elevation: 0,
                                 clipBehavior: Clip.antiAliasWithSaveLayer,
-                                shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                                shape: ContinuousRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25)),
                                 child: FadeInImage(
                                     fit: BoxFit.cover,
-                                    imageErrorBuilder: (context, error, stackTrace) => Image.asset("assets/bg_images/music-placeholder.png"),
-                                    image: MemoryImage(AppMethods().imageConversion(song.albumArt!)),
-                                    placeholder: const AssetImage("assets/bg_images/music-placeholder.png")),
+                                    imageErrorBuilder: (context, error,
+                                            stackTrace) =>
+                                        Image.asset(
+                                            "assets/bg_images/music-placeholder.png"),
+                                    image: MemoryImage(AppMethods()
+                                        .imageConversion(song.albumArt!)),
+                                    placeholder: const AssetImage(
+                                        "assets/bg_images/music-placeholder.png")),
                               ),
                             ),
                             title: Padding(
@@ -146,7 +168,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 song.trackName ?? "-",
                                 style: TextStyle(
                                   fontSize: 15,
-                                  color: currentPlayingSong?.trackName == song.trackName ? Colors.deepPurple : Colors.black,
+                                  color: currentPlayingSong?.trackName ==
+                                          song.trackName
+                                      ? Colors.deepPurple
+                                      : Colors.black,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -154,17 +179,25 @@ class _HomePageState extends ConsumerState<HomePage> {
                             trailing: Padding(
                               padding: const EdgeInsets.only(right: 13),
                               child: PopupMenuButton(
-                                shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                                shape: ContinuousRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25)),
                                 offset: const Offset(0, 45),
                                 elevation: 15,
                                 onSelected: (val) {
                                   if (val == "Delete") {
-                                    ref.read(homePageControllerProvider).deleteSongs(song: song, index: index, context: context);
+                                    ref
+                                        .read(homePageControllerProvider)
+                                        .deleteSongs(
+                                            song: song,
+                                            index: index,
+                                            context: context);
                                   }
                                 },
                                 itemBuilder: (context) => [
-                                  const PopupMenuItem(value: "Share", child: Text("Share")),
-                                  const PopupMenuItem(value: "Delete", child: Text("Delete")),
+                                  const PopupMenuItem(
+                                      value: "Share", child: Text("Share")),
+                                  const PopupMenuItem(
+                                      value: "Delete", child: Text("Delete")),
                                 ],
                               ),
                             ),
@@ -199,47 +232,75 @@ class _HomePageState extends ConsumerState<HomePage> {
                             },
                             child: Card(
                               color: Colors.deepPurple[100],
-                              shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(45)),
+                              shape: ContinuousRectangleBorder(
+                                  borderRadius: BorderRadius.circular(45)),
                               clipBehavior: Clip.hardEdge,
                               child: Stack(
                                 clipBehavior: Clip.hardEdge,
                                 children: [
-                                  Container(
+                                  SizedBox(
                                     width: AppMethods().getWidth(context),
-                                    height: AppMethods().getHeight(context) * 0.05,
+                                    height:
+                                        AppMethods().getHeight(context) * 0.05,
                                     child: ImageFiltered(
-                                        imageFilter: ImageFilter.blur(sigmaX: 45, sigmaY: 55),
+                                        imageFilter: ImageFilter.blur(
+                                            sigmaX: 45, sigmaY: 55),
                                         child: FadeInImage(
                                             fit: BoxFit.cover,
-                                            imageErrorBuilder: (context, error, stackTrace) => Image.asset("assets/bg_images/music-placeholder.png"),
+                                            imageErrorBuilder: (context, error,
+                                                    stackTrace) =>
+                                                Image.asset(
+                                                    "assets/bg_images/music-placeholder.png"),
                                             image: MemoryImage(
-                                              AppMethods().imageConversion(currentPlayingSong.albumArt ?? ""),
+                                              AppMethods().imageConversion(
+                                                  currentPlayingSong.albumArt ??
+                                                      ""),
                                             ),
-                                            placeholder: const AssetImage("assets/bg_images/music-placeholder.png"))),
+                                            placeholder: const AssetImage(
+                                                "assets/bg_images/music-placeholder.png"))),
                                   ),
                                   Container(
                                     color: Colors.white54,
                                     child: ListTile(
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 8, horizontal: 10),
                                       leading: Card(
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(45)),
-                                        clipBehavior: Clip.antiAliasWithSaveLayer,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(45)),
+                                        clipBehavior:
+                                            Clip.antiAliasWithSaveLayer,
                                         child: FadeInImage(
                                             fit: BoxFit.cover,
-                                            imageErrorBuilder: (context, error, stackTrace) => Image.asset("assets/bg_images/music-placeholder.png"),
+                                            imageErrorBuilder: (context, error,
+                                                    stackTrace) =>
+                                                Image.asset(
+                                                    "assets/bg_images/music-placeholder.png"),
                                             image: MemoryImage(
-                                              AppMethods().imageConversion(currentPlayingSong.albumArt ?? ""),
+                                              AppMethods().imageConversion(
+                                                  currentPlayingSong.albumArt ??
+                                                      ""),
                                             ),
-                                            placeholder: const AssetImage("assets/bg_images/music-placeholder.png")),
+                                            placeholder: const AssetImage(
+                                                "assets/bg_images/music-placeholder.png")),
                                       ),
                                       trailing: IconButton(
                                         onPressed: () async {
-                                          final audioPlayer = ref.read(audioPlayerControllerProvider);
-                                          ref.read(isPlayingProvider) ? await audioPlayer.pauseSong() : await audioPlayer.resumeSong();
-                                          ref.read(isPlayingProvider.notifier).state = !ref.read(isPlayingProvider);
+                                          final audioPlayer = ref.read(
+                                              audioPlayerControllerProvider);
+                                          ref.read(isPlayingProvider)
+                                              ? await audioPlayer.pauseSong()
+                                              : await audioPlayer.resumeSong();
+                                          ref
+                                                  .read(isPlayingProvider.notifier)
+                                                  .state =
+                                              !ref.read(isPlayingProvider);
                                         },
                                         icon: Icon(
-                                          isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                          isPlaying
+                                              ? Icons.pause_rounded
+                                              : Icons.play_arrow_rounded,
                                           color: Colors.black87,
                                         ),
                                       ),
@@ -260,7 +321,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             );
           } else {
             return Consumer(builder: (context, ref, child) {
-              final isShimmerNeeded = ref.watch(isPermissionGrantedShimmerProvider);
+              final isShimmerNeeded =
+                  ref.watch(isPermissionGrantedShimmerProvider);
               return isShimmerNeeded
                   ? Column(
                       children: [
@@ -269,65 +331,91 @@ class _HomePageState extends ConsumerState<HomePage> {
                             itemCount: 15,
                             itemBuilder: (context, index) {
                               return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 25, vertical: 5),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Shimmer.fromColors(
-                                      baseColor: Colors.grey[300]!, // Light gray for shimmer effect
-                                      highlightColor: Colors.grey[100]!, // Lighter gray for highlight
+                                      baseColor: Colors.grey[
+                                          300]!, // Light gray for shimmer effect
+                                      highlightColor: Colors.grey[
+                                          100]!, // Lighter gray for highlight
                                       child: Container(
                                         width: 70.0,
                                         height: 70.0,
                                         decoration: BoxDecoration(
-                                          color: Colors.white, // Color for actual image (hidden initially)
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          color: Colors
+                                              .white, // Color for actual image (hidden initially)
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 20.0), // Spacing between image and text
+                                    const SizedBox(
+                                        width:
+                                            20.0), // Spacing between image and text
                                     Flexible(
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Shimmer.fromColors(
                                             baseColor: Colors.grey[300]!,
                                             highlightColor: Colors.grey[100]!,
                                             child: Container(
                                               height: 16.0,
-                                              width: AppMethods().getWidth(context), // Height for one line of text
+                                              width: AppMethods().getWidth(
+                                                  context), // Height for one line of text
                                               decoration: BoxDecoration(
-                                                  color: Colors.white, borderRadius: BorderRadius.circular(8)), // Hidden color for actual text
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8)), // Hidden color for actual text
                                               child: const Text(
                                                 '',
-                                                style: TextStyle(fontSize: 16.0),
+                                                style:
+                                                    TextStyle(fontSize: 16.0),
                                               ),
                                             ),
                                           ),
-                                          const SizedBox(height: 4.0), // Spacing between text lines
+                                          const SizedBox(
+                                              height:
+                                                  4.0), // Spacing between text lines
                                           Shimmer.fromColors(
                                             baseColor: Colors.grey[300]!,
                                             highlightColor: Colors.grey[100]!,
                                             child: Container(
                                               height: 16.0,
-                                              width: AppMethods().getWidth(context),
-                                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                                              width: AppMethods()
+                                                  .getWidth(context),
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8)),
                                               child: const Text(
                                                 '',
-                                                style: TextStyle(fontSize: 16.0),
+                                                style:
+                                                    TextStyle(fontSize: 16.0),
                                               ),
                                             ),
                                           ),
-                                          const SizedBox(height: 4.0), // Spacing between text lines
+                                          const SizedBox(
+                                              height:
+                                                  4.0), // Spacing between text lines
                                           Shimmer.fromColors(
                                             baseColor: Colors.grey[300]!,
                                             highlightColor: Colors.grey[100]!,
                                             child: Container(
                                               height: 16.0,
-                                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8)),
                                               child: const Text(
                                                 '',
-                                                style: TextStyle(fontSize: 16.0),
+                                                style:
+                                                    TextStyle(fontSize: 16.0),
                                               ),
                                             ),
                                           ),
@@ -395,9 +483,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                           fadeInDuration: const Duration(milliseconds: 400),
                           fit: BoxFit.cover,
                           image: MemoryImage(
-                            AppMethods().imageConversion(songData?.albumArt ?? ""),
+                            AppMethods()
+                                .imageConversion(songData?.albumArt ?? ""),
                           ),
-                          placeholder: const AssetImage("assets/bg_images/music-placeholder.png")),
+                          placeholder: const AssetImage(
+                              "assets/bg_images/music-placeholder.png")),
                     ),
                   ),
                   Container(
@@ -435,23 +525,29 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 height: 200,
                                 width: 200,
                                 child: Card(
-                                  shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(65)),
+                                  shape: ContinuousRectangleBorder(
+                                      borderRadius: BorderRadius.circular(65)),
                                   clipBehavior: Clip.antiAliasWithSaveLayer,
                                   child: FadeInImage(
                                       fit: BoxFit.cover,
                                       image: MemoryImage(
-                                        AppMethods().imageConversion(songData?.albumArt ?? ""),
+                                        AppMethods().imageConversion(
+                                            songData?.albumArt ?? ""),
                                       ),
-                                      placeholder: const AssetImage("assets/bg_images/music-placeholder.png")),
+                                      placeholder: const AssetImage(
+                                          "assets/bg_images/music-placeholder.png")),
                                 ),
                               ),
 
                               /// SONG NAME
                               Padding(
-                                padding: const EdgeInsets.only(top: 30, left: 25, right: 25),
+                                padding: const EdgeInsets.only(
+                                    top: 30, left: 25, right: 25),
                                 child: Text(
                                   songData?.trackName ?? "-",
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
                                   textAlign: TextAlign.center,
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
@@ -477,8 +573,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 20),
                                 child: Consumer(builder: (context, ref, child) {
-                                  final sliderValue = ref.watch(sliderValueProvider);
-                                  final songMax = ref.watch(songMaxValueProvider);
+                                  final sliderValue =
+                                      ref.watch(sliderValueProvider);
+                                  final songMax =
+                                      ref.watch(songMaxValueProvider);
                                   return Column(
                                     children: [
                                       Slider(
@@ -488,25 +586,32 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         activeColor: Colors.black,
                                         inactiveColor: Colors.black38,
                                         onChanged: (double value) {
-                                          audioPlayer.seekSong(seekedPosition: value.toInt());
+                                          audioPlayer.seekSong(
+                                              seekedPosition: value.toInt());
                                         },
                                       ),
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 15),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text(
-                                              audioPlayer.convertSecondsToMinutes(
+                                              audioPlayer
+                                                  .convertSecondsToMinutes(
                                                 sliderValue.toInt(),
                                               ),
-                                              style: const TextStyle(fontSize: 15),
+                                              style:
+                                                  const TextStyle(fontSize: 15),
                                             ),
                                             Text(
-                                              audioPlayer.convertSecondsToMinutes(
+                                              audioPlayer
+                                                  .convertSecondsToMinutes(
                                                 songMax.toInt(),
                                               ),
-                                              style: const TextStyle(fontSize: 15),
+                                              style:
+                                                  const TextStyle(fontSize: 15),
                                             ),
                                           ],
                                         ),
@@ -520,18 +625,29 @@ class _HomePageState extends ConsumerState<HomePage> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 35),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
                                   children: [
                                     /// SHUFFLE
                                     Consumer(builder: (context, ref, child) {
-                                      final isShuffleEnabled = ref.watch(isShuffleEnabledPRovider);
+                                      final isShuffleEnabled =
+                                          ref.watch(isShuffleEnabledPRovider);
                                       return IconButton(
-                                          style: IconButton.styleFrom(backgroundColor: isShuffleEnabled ? Colors.blueAccent : null),
+                                          style: IconButton.styleFrom(
+                                              backgroundColor: isShuffleEnabled
+                                                  ? Colors.blueAccent
+                                                  : null),
                                           onPressed: () {
                                             if (!isShuffleEnabled) {
-                                              ref.read(audioPlayerControllerProvider).shuffleSongs();
+                                              ref
+                                                  .read(
+                                                      audioPlayerControllerProvider)
+                                                  .shuffleSongs();
                                             } else {
-                                              ref.read(audioPlayerControllerProvider).sortSongs();
+                                              ref
+                                                  .read(
+                                                      audioPlayerControllerProvider)
+                                                  .sortSongs();
                                             }
                                           },
                                           icon: const Icon(
@@ -544,7 +660,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     /// PREVIOUS
                                     IconButton(
                                         onPressed: () {
-                                          audioPlayer.changeSong(isForward: false);
+                                          audioPlayer.changeSong(
+                                              isForward: false);
                                         },
                                         icon: const Icon(
                                           Icons.skip_previous_rounded,
@@ -555,14 +672,24 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     /// PLAY OR PAUSE
                                     IconButton(
                                       onPressed: () async {
-                                        ref.read(isPlayingProvider) ? await audioPlayer.pauseSong() : await audioPlayer.resumeSong();
-                                        ref.read(isPlayingProvider.notifier).state = !ref.read(isPlayingProvider);
+                                        ref.read(isPlayingProvider)
+                                            ? await audioPlayer.pauseSong()
+                                            : await audioPlayer.resumeSong();
+                                        ref
+                                                .read(isPlayingProvider.notifier)
+                                                .state =
+                                            !ref.read(isPlayingProvider);
                                       },
-                                      style: IconButton.styleFrom(backgroundColor: Colors.black87),
-                                      icon: Consumer(builder: (context, ref, child) {
-                                        final isPlaying = ref.watch(isPlayingProvider);
+                                      style: IconButton.styleFrom(
+                                          backgroundColor: Colors.black87),
+                                      icon: Consumer(
+                                          builder: (context, ref, child) {
+                                        final isPlaying =
+                                            ref.watch(isPlayingProvider);
                                         return Icon(
-                                          isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                          isPlaying
+                                              ? Icons.pause_rounded
+                                              : Icons.play_arrow_rounded,
                                           size: 35,
                                           color: Colors.white,
                                         );
@@ -582,12 +709,20 @@ class _HomePageState extends ConsumerState<HomePage> {
 
                                     /// REPEAT
                                     Consumer(builder: (context, ref, child) {
-                                      final isRepeat = ref.watch(isRepeatModeProvider);
+                                      final isRepeat =
+                                          ref.watch(isRepeatModeProvider);
                                       return IconButton(
                                           onPressed: () {
-                                            ref.read(isRepeatModeProvider.notifier).state = !ref.read(isRepeatModeProvider);
+                                            ref
+                                                    .read(isRepeatModeProvider
+                                                        .notifier)
+                                                    .state =
+                                                !ref.read(isRepeatModeProvider);
                                           },
-                                          style: IconButton.styleFrom(backgroundColor: isRepeat ? Colors.blueAccent : null),
+                                          style: IconButton.styleFrom(
+                                              backgroundColor: isRepeat
+                                                  ? Colors.blueAccent
+                                                  : null),
                                           icon: const Icon(
                                             Icons.repeat_rounded,
                                             size: 25,

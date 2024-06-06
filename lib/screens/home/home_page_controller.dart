@@ -8,7 +8,8 @@ import 'package:mp3player/models/song_model.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
 
-final homePageControllerProvider = Provider((ref) => HomePageController(ref: ref));
+final homePageControllerProvider =
+    Provider((ref) => HomePageController(ref: ref));
 final mp3SongListProvider = StateProvider<List<SongsModel>>((ref) => []);
 final scanPageLoaderProvider = StateProvider<bool>((ref) => false);
 final selectedSongProvider = StateProvider<SongsModel?>((ref) => null);
@@ -21,14 +22,15 @@ final textFieldSwithcerProvider = StateProvider<bool>((ref) => false);
 final isShuffleEnabledPRovider = StateProvider<bool>((ref) => false);
 final isPermissionGrantedShimmerProvider = StateProvider<bool>((ref) => false);
 
-final audioPlayerControllerProvider = Provider((ref) => AudioPlayerController(ref: ref));
+final audioPlayerControllerProvider =
+    Provider((ref) => AudioPlayerController(ref: ref));
 
 class HomePageController {
   final Ref ref;
 
   const HomePageController({required this.ref});
 
-  Future<void> scanAllMp3Files() async {
+  Future<List<SongsModel>> scanAllMp3Files() async {
     ref.read(scanPageLoaderProvider.notifier).state = true;
     List<SongsModel> songs = [];
     String path = "";
@@ -44,10 +46,18 @@ class HomePageController {
         filePath.add(path);
       }
     }
+
+    /// NEW
+    for (String storageDirPath in filePath) {
+      print("SYNC : ${Directory(storageDirPath).listSync()}");
+    }
+
+    /// OLD METHOD
     for (String path in filePath) {
       var withAndroidFolders = Directory(path).listSync();
       for (FileSystemEntity dirFile in withAndroidFolders) {
-        if (Directory(dirFile.path).statSync().type == FileSystemEntityType.directory) {
+        if (Directory(dirFile.path).statSync().type ==
+            FileSystemEntityType.directory) {
           if (!dirFile.path.contains("Android") && await dirFile.exists()) {
             if (dirFile is File && dirFile.path.endsWith(".mp3")) {
               final metaData = await MetadataRetriever.fromFile(dirFile);
@@ -61,7 +71,8 @@ class HomePageController {
                   print("file : ${songFile.path}");
                   final metaData = await MetadataRetriever.fromFile(songFile);
                   if (metaData.trackName != null) {
-                    addToModel(songs: songs, metaData: metaData, file: songFile);
+                    addToModel(
+                        songs: songs, metaData: metaData, file: songFile);
                   }
                 }
               }
@@ -70,13 +81,17 @@ class HomePageController {
         }
       }
     }
-    songs.sort((a, b) => a.trackName.toString().compareTo(b.trackName.toString()));
-    ref.read(mp3SongListProvider.notifier).state = songs;
+    songs.sort(
+        (a, b) => a.trackName.toString().compareTo(b.trackName.toString()));
     await DbHelper().insertSong(songs);
     ref.read(scanPageLoaderProvider.notifier).state = false;
+    return songs;
   }
 
-  addToModel({required List<SongsModel> songs, required Metadata metaData, required File file}) {
+  addToModel(
+      {required List<SongsModel> songs,
+      required Metadata metaData,
+      required File file}) {
     songs.add(
       SongsModel(
         trackName: metaData.trackName,
@@ -105,7 +120,8 @@ class HomePageController {
     return data;
   }
 
-  deleteSongs({required SongsModel song, required int index, required context}) async {
+  deleteSongs(
+      {required SongsModel song, required int index, required context}) async {
     final selectedSongPath = File("/${song.file}");
     if (await selectedSongPath.exists()) {
       await selectedSongPath.delete();
@@ -128,7 +144,8 @@ class AudioPlayerController {
 
   AudioPlayerController({required this.ref}) {
     audioPlayer.onDurationChanged.listen((event) {
-      ref.read(songMaxValueProvider.notifier).state = event.inSeconds.toDouble();
+      ref.read(songMaxValueProvider.notifier).state =
+          event.inSeconds.toDouble();
     });
     audioPlayer.onPositionChanged.listen((event) {
       ref.read(sliderValueProvider.notifier).state = event.inSeconds.toDouble();
@@ -171,23 +188,31 @@ class AudioPlayerController {
     final isRepeat = ref.read(isRepeatModeProvider);
     if (isRepeat) {
       ref.read(selectedSongIndexProvider.notifier).state = selectedSongIndex;
-      ref.read(selectedSongProvider.notifier).state = totalSong[ref.read(selectedSongIndexProvider)];
+      ref.read(selectedSongProvider.notifier).state =
+          totalSong[ref.read(selectedSongIndexProvider)];
     } else {
       if (isForward) {
         if (selectedSongIndex < totalSong.length - 1) {
-          ref.read(selectedSongIndexProvider.notifier).state = selectedSongIndex + 1;
-          ref.read(selectedSongProvider.notifier).state = totalSong[ref.read(selectedSongIndexProvider)];
+          ref.read(selectedSongIndexProvider.notifier).state =
+              selectedSongIndex + 1;
+          ref.read(selectedSongProvider.notifier).state =
+              totalSong[ref.read(selectedSongIndexProvider)];
         } else {
           ref.read(selectedSongIndexProvider.notifier).state = 0;
-          ref.read(selectedSongProvider.notifier).state = totalSong[ref.read(selectedSongIndexProvider)];
+          ref.read(selectedSongProvider.notifier).state =
+              totalSong[ref.read(selectedSongIndexProvider)];
         }
       } else {
         if (selectedSongIndex == 0) {
-          ref.read(selectedSongIndexProvider.notifier).state = totalSong.length - 1;
-          ref.read(selectedSongProvider.notifier).state = totalSong[ref.read(selectedSongIndexProvider)];
+          ref.read(selectedSongIndexProvider.notifier).state =
+              totalSong.length - 1;
+          ref.read(selectedSongProvider.notifier).state =
+              totalSong[ref.read(selectedSongIndexProvider)];
         } else {
-          ref.read(selectedSongIndexProvider.notifier).state = selectedSongIndex - 1;
-          ref.read(selectedSongProvider.notifier).state = totalSong[ref.read(selectedSongIndexProvider)];
+          ref.read(selectedSongIndexProvider.notifier).state =
+              selectedSongIndex - 1;
+          ref.read(selectedSongProvider.notifier).state =
+              totalSong[ref.read(selectedSongIndexProvider)];
         }
       }
     }
@@ -206,7 +231,8 @@ class AudioPlayerController {
 
   sortSongs() {
     final shuffledSongs = ref.read(mp3SongListProvider);
-    shuffledSongs.sort((a, b) => a.trackName.toString().compareTo(b.trackName.toString()));
+    shuffledSongs.sort(
+        (a, b) => a.trackName.toString().compareTo(b.trackName.toString()));
     ref.refresh(mp3SongListProvider);
     ref.read(mp3SongListProvider.notifier).state = shuffledSongs;
     ref.read(isShuffleEnabledPRovider.notifier).state = false;

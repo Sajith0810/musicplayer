@@ -16,7 +16,7 @@ void main() async {
     ProviderScope(
       child: MaterialApp(
         theme: ThemeData(
-          fontFamily: GoogleFonts.poppins().fontFamily,
+          fontFamily: "poppins",
         ),
         home: const MainPage(),
         routes: {
